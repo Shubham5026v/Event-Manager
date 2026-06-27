@@ -1,0 +1,35 @@
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
+.venv/
+venv/
+env/
+app/venv/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Local database / backups
+instance/
+*.db
+*.sqlite
+*.sqlite3
+*.bak
+
+# Local structure files
+folder_structure.txt
+structure.txt
+
+# Logs / outputs
+logs/
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
