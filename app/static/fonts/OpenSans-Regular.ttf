@@ -1,0 +1,32 @@
+/* OpenSans-Regular.ttf - Clean Readable Font for Body Text
+ * 
+ * Font Information:
+ * - Family: Open Sans
+ * - Style: Regular
+ * - Designer: Steve Matteson
+ * - License: Apache License, Version 2.0
+ * 
+ * Download Instructions:
+ * 1. Visit Google Fonts: https://fonts.google.com/specimen/Open+Sans
+ * 2. Click "Download family" button
+ * 3. Extract the downloaded ZIP file
+ * 4. Copy 'OpenSans-Regular.ttf' to this directory
+ * 
+ * Alternative Downloads:
+ * - Font Squirrel: https://www.fontsquirrel.com/fonts/open-sans
+ * - GitHub: https://github.com/googlefonts/opensans
+ * 
+ * Font Family Includes:
+ * - Regular, Italic, Light, Light Italic, SemiBold, SemiBold Italic, Bold, Bold Italic, ExtraBold, ExtraBold Italic
+ * 
+ * Usage in CSS:
+ * @font-face {
+ *     font-family: 'OpenSans';
+ *     src: url('/static/fonts/OpenSans-Regular.ttf') format('truetype');
+ *     font-weight: normal;
+ *     font-style: normal;
+ * }
+ */
+
+/* This is a placeholder file. Please replace with actual font file. */
+/* Create a file named 'OpenSans-Regular.ttf' in this directory */

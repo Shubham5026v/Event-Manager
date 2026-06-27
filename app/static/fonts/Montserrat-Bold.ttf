@@ -1,0 +1,32 @@
+/* Montserrat-Bold.ttf - Modern Bold Font for Certificate Titles
+ * 
+ * Font Information:
+ * - Family: Montserrat
+ * - Style: Bold
+ * - Designer: Julieta Ulanovsky
+ * - License: SIL Open Font License (OFL)
+ * 
+ * Download Instructions:
+ * 1. Visit Google Fonts: https://fonts.google.com/specimen/Montserrat
+ * 2. Click "Download family" button
+ * 3. Extract the downloaded ZIP file
+ * 4. Copy 'Montserrat-Bold.ttf' to this directory
+ * 
+ * Alternative Downloads:
+ * - Font Squirrel: https://www.fontsquirrel.com/fonts/montserrat
+ * - GitHub: https://github.com/JulietaUla/Montserrat
+ * 
+ * Font Family Includes:
+ * - Thin, ExtraLight, Light, Regular, Medium, SemiBold, Bold, ExtraBold, Black
+ * 
+ * Usage in CSS:
+ * @font-face {
+ *     font-family: 'Montserrat';
+ *     src: url('/static/fonts/Montserrat-Bold.ttf') format('truetype');
+ *     font-weight: bold;
+ *     font-style: normal;
+ * }
+ */
+
+/* This is a placeholder file. Please replace with actual font file. */
+/* Create a file named 'Montserrat-Bold.ttf' in this directory */

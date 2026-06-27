@@ -1,0 +1,29 @@
+/* GreatVibes-Regular.ttf - Elegant Script Font for Certificate Names
+ * 
+ * Font Information:
+ * - Family: Great Vibes
+ * - Style: Regular
+ * - Designer: TypeSETit
+ * - License: SIL Open Font License (OFL)
+ * 
+ * Download Instructions:
+ * 1. Visit Google Fonts: https://fonts.google.com/specimen/Great+Vibes
+ * 2. Click "Download family" button
+ * 3. Extract the downloaded ZIP file
+ * 4. Copy 'GreatVibes-Regular.ttf' to this directory
+ * 
+ * Alternative Downloads:
+ * - Font Squirrel: https://www.fontsquirrel.com/fonts/great-vibes
+ * - FontSpace: https://www.fontspace.com/great-vibes-font-f2998
+ * 
+ * Usage in CSS:
+ * @font-face {
+ *     font-family: 'GreatVibes';
+ *     src: url('/static/fonts/GreatVibes-Regular.ttf') format('truetype');
+ *     font-weight: normal;
+ *     font-style: normal;
+ * }
+ */
+
+/* This is a placeholder file. Please replace with actual font file. */
+/* Create a file named 'GreatVibes-Regular.ttf' in this directory */
