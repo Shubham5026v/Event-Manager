@@ -1,0 +1,496 @@
+{% extends "base.html" %}
+
+{% block title %}Booking Details - EventX{% endblock %}
+
+{% block extra_css %}
+<style>
+    .booking-detail-page {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .booking-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 2rem;
+        gap: 2rem;
+    }
+
+    .booking-title-section h1 {
+        margin: 0 0 0.5rem 0;
+        color: #ffffff;
+        font-size: 2rem;
+    }
+
+    .booking-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #a5bbff;
+        font-size: 0.9rem;
+    }
+
+    .meta-item i {
+        color: #00ffff;
+    }
+
+    .booking-status {
+        padding: 0.5rem 1rem;
+        border-radius: 2rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: inline-block;
+    }
+
+    .status-pending {
+        background: rgba(255, 193, 7, 0.2);
+        color: #ffc107;
+        border: 1px solid rgba(255, 193, 7, 0.3);
+    }
+
+    .status-approved {
+        background: rgba(40, 167, 69, 0.2);
+        color: #28a745;
+        border: 1px solid rgba(40, 167, 69, 0.3);
+    }
+
+    .status-confirmed {
+        background: rgba(0, 123, 255, 0.2);
+        color: #007bff;
+        border: 1px solid rgba(0, 123, 255, 0.3);
+    }
+
+    .status-completed {
+        background: rgba(23, 162, 184, 0.2);
+        color: #17a2b8;
+        border: 1px solid rgba(23, 162, 184, 0.3);
+    }
+
+    .status-cancelled {
+        background: rgba(220, 53, 69, 0.2);
+        color: #dc3545;
+        border: 1px solid rgba(220, 53, 69, 0.3);
+    }
+
+    .status-rejected {
+        background: rgba(108, 117, 125, 0.2);
+        color: #6c757d;
+        border: 1px solid rgba(108, 117, 125, 0.3);
+    }
+
+    .booking-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+
+    .booking-actions a, .booking-actions button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.85rem;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        color: #ffffff;
+        text-decoration: none;
+        background: rgba(0, 255, 255, 0.08);
+        transition: all 0.25s ease;
+        font-size: 0.9rem;
+        cursor: pointer;
+    }
+
+    .booking-actions a:hover, .booking-actions button:hover {
+        transform: translateY(-1px);
+        background: rgba(0, 255, 255, 0.18);
+        border-color: rgba(0, 255, 255, 0.25);
+    }
+
+    .btn-danger {
+        background: rgba(220, 53, 69, 0.2);
+        border-color: rgba(220, 53, 69, 0.3);
+    }
+
+    .btn-danger:hover {
+        background: rgba(220, 53, 69, 0.3);
+        border-color: rgba(220, 53, 69, 0.5);
+    }
+
+    .booking-content {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 2rem;
+    }
+
+    .booking-details {
+        background: rgba(10, 18, 35, 0.75);
+        border: 1px solid rgba(0, 255, 255, 0.15);
+        border-radius: 1.5rem;
+        padding: 2rem;
+    }
+
+    .detail-section {
+        margin-bottom: 2rem;
+    }
+
+    .detail-section h3 {
+        color: #ffffff;
+        margin-bottom: 1rem;
+        font-size: 1.2rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .detail-section h3 i {
+        color: #00ffff;
+    }
+
+    .detail-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+    }
+
+    .detail-item {
+        background: rgba(255, 255, 255, 0.05);
+        padding: 1rem;
+        border-radius: 0.75rem;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .detail-label {
+        font-size: 0.8rem;
+        color: #a5bbff;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.25rem;
+    }
+
+    .detail-value {
+        font-size: 1rem;
+        color: #ffffff;
+        font-weight: 500;
+    }
+
+    .booking-description {
+        background: rgba(255, 255, 255, 0.05);
+        padding: 1.5rem;
+        border-radius: 0.75rem;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        margin-bottom: 1rem;
+    }
+
+    .booking-description p {
+        margin: 0;
+        color: #a5bbff;
+        line-height: 1.6;
+    }
+
+    .sidebar-section {
+        background: rgba(10, 18, 35, 0.75);
+        border: 1px solid rgba(0, 255, 255, 0.15);
+        border-radius: 1.5rem;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .sidebar-section h3 {
+        color: #ffffff;
+        margin-bottom: 1rem;
+        font-size: 1.1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .sidebar-section h3 i {
+        color: #00ffff;
+    }
+
+    .approval-item {
+        background: rgba(255, 255, 255, 0.05);
+        padding: 1rem;
+        border-radius: 0.5rem;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        margin-bottom: 0.75rem;
+    }
+
+    .approval-stage {
+        font-weight: 600;
+        color: #ffffff;
+        margin-bottom: 0.25rem;
+    }
+
+    .approval-status {
+        font-size: 0.85rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .approval-pending {
+        background: rgba(255, 193, 7, 0.2);
+        color: #ffc107;
+    }
+
+    .approval-approved {
+        background: rgba(40, 167, 69, 0.2);
+        color: #28a745;
+    }
+
+    .approval-rejected {
+        background: rgba(220, 53, 69, 0.2);
+        color: #dc3545;
+    }
+
+    .approval-cancelled {
+        background: rgba(108, 117, 125, 0.2);
+        color: #6c757d;
+    }
+
+    .history-item {
+        background: rgba(255, 255, 255, 0.05);
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .history-action {
+        font-weight: 600;
+        color: #ffffff;
+        margin-bottom: 0.25rem;
+    }
+
+    .history-details {
+        color: #a5bbff;
+    }
+
+    .history-timestamp {
+        font-size: 0.8rem;
+        color: #888;
+        margin-top: 0.25rem;
+    }
+
+    @media (max-width: 768px) {
+        .booking-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .booking-content {
+            grid-template-columns: 1fr;
+        }
+
+        .booking-actions {
+            justify-content: center;
+        }
+
+        .detail-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="booking-detail-page">
+    <div class="booking-header">
+        <div class="booking-title-section">
+            <h1>{{ booking.title }}</h1>
+            <div class="booking-meta">
+                <div class="meta-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    {{ booking.venue.name }}
+                </div>
+                <div class="meta-item">
+                    <i class="fas fa-calendar-alt"></i>
+                    {{ booking.start_time.strftime('%Y-%m-%d') }}
+                </div>
+                <div class="meta-item">
+                    <i class="fas fa-clock"></i>
+                    {{ booking.start_time.strftime('%H:%M') }} - {{ booking.end_time.strftime('%H:%M') }}
+                </div>
+                <div class="meta-item">
+                    <i class="fas fa-users"></i>
+                    {{ booking.expected_attendees }} attendees
+                </div>
+            </div>
+            <div class="booking-status status-{{ booking.status.value.lower() }}">
+                {{ booking.status.value|title }}
+            </div>
+        </div>
+
+        <div class="booking-actions">
+            {% if booking.status.value in ['draft', 'pending_faculty'] %}
+                <a href="{{ url_for('booking.edit', booking_id=booking.id) }}">
+                    <i class="fas fa-edit"></i>
+                    Edit
+                </a>
+                <form method="POST" action="{{ url_for('booking.cancel', booking_id=booking.id) }}" style="display: inline;">
+                    <input type="hidden" name="reason" value="Cancelled by user">
+                    <button type="submit" class="btn-danger" onclick="return confirm('Are you sure you want to cancel this booking?')">
+                        <i class="fas fa-times"></i>
+                        Cancel
+                    </button>
+                </form>
+            {% endif %}
+            <a href="{{ url_for('booking.index') }}">
+                <i class="fas fa-arrow-left"></i>
+                Back to Bookings
+            </a>
+        </div>
+    </div>
+
+    <div class="booking-content">
+        <!-- Main Details -->
+        <div class="booking-details">
+            <!-- Basic Information -->
+            <div class="detail-section">
+                <h3><i class="fas fa-info-circle"></i> Basic Information</h3>
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <div class="detail-label">Event Type</div>
+                        <div class="detail-value">{{ booking.event_type|title }}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Priority</div>
+                        <div class="detail-value">{{ booking.priority }}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Setup Time</div>
+                        <div class="detail-value">{{ booking.setup_time }} minutes</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Cleanup Time</div>
+                        <div class="detail-value">{{ booking.cleanup_time }} minutes</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Description -->
+            {% if booking.description %}
+                <div class="detail-section">
+                    <h3><i class="fas fa-align-left"></i> Description</h3>
+                    <div class="booking-description">
+                        <p>{{ booking.description }}</p>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Requirements -->
+            {% if booking.requirements or booking.special_requests %}
+                <div class="detail-section">
+                    <h3><i class="fas fa-list-check"></i> Requirements & Requests</h3>
+                    {% if booking.requirements %}
+                        <div class="booking-description">
+                            <strong>Requirements:</strong><br>
+                            <p>{{ booking.requirements }}</p>
+                        </div>
+                    {% endif %}
+                    {% if booking.special_requests %}
+                        <div class="booking-description">
+                            <strong>Special Requests:</strong><br>
+                            <p>{{ booking.special_requests }}</p>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endif %}
+
+            <!-- Status Information -->
+            <div class="detail-section">
+                <h3><i class="fas fa-history"></i> Status Information</h3>
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <div class="detail-label">Created</div>
+                        <div class="detail-value">{{ booking.created_at.strftime('%Y-%m-%d %H:%M') }}</div>
+                    </div>
+                    {% if booking.faculty_approved_at %}
+                        <div class="detail-item">
+                            <div class="detail-label">Faculty Approved</div>
+                            <div class="detail-value">{{ booking.faculty_approved_at.strftime('%Y-%m-%d %H:%M') }}</div>
+                        </div>
+                    {% endif %}
+                    {% if booking.admin_approved_at %}
+                        <div class="detail-item">
+                            <div class="detail-label">Admin Approved</div>
+                            <div class="detail-value">{{ booking.admin_approved_at.strftime('%Y-%m-%d %H:%M') }}</div>
+                        </div>
+                    {% endif %}
+                    {% if booking.security_approved_at %}
+                        <div class="detail-item">
+                            <div class="detail-label">Security Approved</div>
+                            <div class="detail-value">{{ booking.security_approved_at.strftime('%Y-%m-%d %H:%M') }}</div>
+                        </div>
+                    {% endif %}
+                    {% if booking.checked_in_at %}
+                        <div class="detail-item">
+                            <div class="detail-label">Checked In</div>
+                            <div class="detail-value">{{ booking.checked_in_at.strftime('%Y-%m-%d %H:%M') }}</div>
+                        </div>
+                    {% endif %}
+                    {% if booking.checked_out_at %}
+                        <div class="detail-item">
+                            <div class="detail-label">Checked Out</div>
+                            <div class="detail-value">{{ booking.checked_out_at.strftime('%Y-%m-%d %H:%M') }}</div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div>
+            <!-- Approvals -->
+            {% if approvals %}
+                <div class="sidebar-section">
+                    <h3><i class="fas fa-check-circle"></i> Approval Status</h3>
+                    {% for approval in approvals %}
+                        <div class="approval-item">
+                            <div class="approval-stage">{{ approval.stage|title }} Approval</div>
+                            <div class="approval-status approval-{{ approval.status }}">
+                                {{ approval.status|title }}
+                            </div>
+                            {% if approval.comments %}
+                                <div style="margin-top: 0.5rem; font-size: 0.85rem; color: #a5bbff;">
+                                    {{ approval.comments }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <!-- History -->
+            {% if history %}
+                <div class="sidebar-section">
+                    <h3><i class="fas fa-history"></i> Activity History</h3>
+                    {% for item in history %}
+                        <div class="history-item">
+                            <div class="history-action">{{ item.action|title }}</div>
+                            <div class="history-details">
+                                {% if item.old_status %}Status: {{ item.old_status }} → {{ item.new_status }}{% endif %}
+                                {% if item.comment %}{{ item.comment }}{% endif %}
+                            </div>
+                            <div class="history-timestamp">{{ item.performed_at.strftime('%Y-%m-%d %H:%M') }}</div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

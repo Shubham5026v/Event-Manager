@@ -1,0 +1,589 @@
+{% extends "base.html" %}
+
+{% block title %}Create Booking - EventX Venue Booking{% endblock %}
+
+{% block extra_css %}
+<style>
+    .create-booking-container {
+        padding: 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    /* Page Header */
+    .page-header {
+        margin-bottom: 2rem;
+    }
+
+    .page-title {
+        font-size: 2rem;
+        font-weight: 800;
+        font-family: 'Orbitron', monospace;
+        background: linear-gradient(135deg, #fff, #00ffff);
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+    }
+
+    /* Form Card */
+    .form-card {
+        background: rgba(8, 18, 34, 0.6);
+        backdrop-filter: blur(12px);
+        border-radius: 1.5rem;
+        border: 1px solid rgba(0, 255, 255, 0.2);
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .form-header {
+        padding: 1.2rem 1.5rem;
+        background: linear-gradient(135deg, rgba(43, 110, 255, 0.1), rgba(155, 77, 255, 0.1));
+        border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 600;
+    }
+
+    .form-body {
+        padding: 2rem;
+    }
+
+    .form-section {
+        margin-bottom: 2rem;
+        padding-bottom: 2rem;
+        border-bottom: 1px solid rgba(0, 255, 255, 0.1);
+    }
+
+    .form-section:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+
+    .section-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #00ffff;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: #99aaff;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .form-group label .required {
+        color: #ff3366;
+        margin-left: 0.2rem;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        padding: 0.8rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        border-radius: 12px;
+        color: white;
+        font-family: inherit;
+        transition: all 0.3s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: #00ffff;
+        box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
+    }
+
+    /* Time Selection */
+    .time-group {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    .time-group .form-group {
+        flex: 1;
+        margin-bottom: 0;
+    }
+
+    /* Availability Status */
+    .availability-status {
+        padding: 1rem;
+        border-radius: 12px;
+        margin-top: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+    }
+
+    .status-available {
+        background: rgba(0, 255, 136, 0.1);
+        border: 1px solid rgba(0, 255, 136, 0.3);
+        color: #00ff88;
+    }
+
+    .status-unavailable {
+        background: rgba(255, 51, 102, 0.1);
+        border: 1px solid rgba(255, 51, 102, 0.3);
+        color: #ff3366;
+    }
+
+    .status-checking {
+        background: rgba(0, 255, 255, 0.1);
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        color: #00ffff;
+    }
+
+    /* Requirements Checkboxes */
+    .requirements-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 0.8rem;
+        margin-top: 0.5rem;
+    }
+
+    .requirement-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 8px;
+        cursor: pointer;
+    }
+
+    .requirement-checkbox input {
+        width: auto;
+        margin: 0;
+    }
+
+    /* Action Buttons */
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid rgba(0, 255, 255, 0.1);
+    }
+
+    .btn-primary {
+        padding: 0.8rem 2rem;
+        background: linear-gradient(135deg, #2b6eff, #9b4dff);
+        border: none;
+        border-radius: 40px;
+        color: white;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .btn-primary:hover {
+        transform: scale(1.02);
+        box-shadow: 0 5px 20px rgba(43, 110, 255, 0.4);
+    }
+
+    .btn-secondary {
+        padding: 0.8rem 2rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        border-radius: 40px;
+        color: white;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-secondary:hover {
+        background: rgba(0, 255, 255, 0.1);
+    }
+
+    @media (max-width: 768px) {
+        .create-booking-container {
+            padding: 1rem;
+        }
+        
+        .form-body {
+            padding: 1.5rem;
+        }
+        
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .time-group {
+            flex-direction: column;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+        }
+        
+        .btn-primary,
+        .btn-secondary {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="create-booking-container">
+    <!-- Page Header -->
+    <div class="page-header" data-aos="fade-up">
+        <div class="page-title">
+            <i class="fas fa-calendar-plus"></i>
+            <span>Create New Booking</span>
+        </div>
+    </div>
+
+    <!-- Form Card -->
+    <div class="form-card" data-aos="fade-up" data-aos-delay="50">
+        <div class="form-header">
+            <i class="fas fa-info-circle"></i>
+            <span>Booking Information</span>
+        </div>
+        <div class="form-body">
+            <form id="bookingForm" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <!-- Event Details -->
+                <div class="form-section">
+                    <div class="section-title">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>Event Details</span>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Event Title <span class="required">*</span></label>
+                            <input type="text" name="title" id="eventTitle" required placeholder="Enter event title">
+                        </div>
+                        <div class="form-group">
+                            <label>Event Type <span class="required">*</span></label>
+                            <select name="event_type" id="eventType" required>
+                                <option value="academic">Academic (High Priority)</option>
+                                <option value="cultural">Cultural (Medium Priority)</option>
+                                <option value="practice">Practice (Low Priority)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Description</label>
+                            <textarea name="description" rows="3" placeholder="Describe your event..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Expected Attendees</label>
+                            <input type="number" name="expected_attendees" id="expectedAttendees" value="0">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Venue & Time Selection -->
+                <div class="form-section">
+                    <div class="section-title">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>Venue & Time</span>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Select Venue <span class="required">*</span></label>
+                            <select name="venue_id" id="venueSelect" required>
+                                <option value="">-- Select Venue --</option>
+                                {% for venue in venues %}
+                                <option value="{{ venue.id }}" data-type="{{ venue.type.value }}" data-capacity="{{ venue.capacity }}">
+                                    {{ venue.name }} ({{ venue.type.value|replace('_', ' ')|title }}) - Capacity: {{ venue.capacity }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Date <span class="required">*</span></label>
+                            <input type="date" name="date" id="bookingDate" required min="{{ min_date }}" max="{{ max_date }}">
+                        </div>
+                    </div>
+                    <div class="time-group">
+                        <div class="form-group">
+                            <label>Start Time <span class="required">*</span></label>
+                            <input type="time" name="start_time" id="startTime" required step="900">
+                        </div>
+                        <div class="form-group">
+                            <label>End Time <span class="required">*</span></label>
+                            <input type="time" name="end_time" id="endTime" required step="900">
+                        </div>
+                    </div>
+                    
+                    <!-- Availability Status -->
+                    <div id="availabilityStatus" class="availability-status status-checking">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <span>Select venue and time to check availability</span>
+                    </div>
+                </div>
+
+                <!-- Additional Settings -->
+                <div class="form-section">
+                    <div class="section-title">
+                        <i class="fas fa-cogs"></i>
+                        <span>Additional Settings</span>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Setup Time (minutes)</label>
+                            <input type="number" name="setup_time" value="30" min="0" max="120">
+                        </div>
+                        <div class="form-group">
+                            <label>Cleanup Time (minutes)</label>
+                            <input type="number" name="cleanup_time" value="30" min="0" max="120">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Requirements -->
+                <div class="form-section">
+                    <div class="section-title">
+                        <i class="fas fa-clipboard-list"></i>
+                        <span>Requirements & Amenities</span>
+                    </div>
+                    <div class="requirements-grid" id="amenitiesGrid">
+                        <!-- Amenities will be loaded dynamically based on venue -->
+                        <div class="requirement-checkbox">
+                            <input type="checkbox" name="requirements" value="projector">
+                            <span>Projector</span>
+                        </div>
+                        <div class="requirement-checkbox">
+                            <input type="checkbox" name="requirements" value="sound_system">
+                            <span>Sound System</span>
+                        </div>
+                        <div class="requirement-checkbox">
+                            <input type="checkbox" name="requirements" value="microphones">
+                            <span>Microphones</span>
+                        </div>
+                        <div class="requirement-checkbox">
+                            <input type="checkbox" name="requirements" value="wifi">
+                            <span>WiFi</span>
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-top: 1rem;">
+                        <label>Special Requests</label>
+                        <textarea name="special_requests" rows="2" placeholder="Any special requests or additional information..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <a href="{{ url_for('booking.index') }}" class="btn-secondary">
+                        <i class="fas fa-times"></i>
+                        <span>Cancel</span>
+                    </a>
+                    <button type="submit" class="btn-primary" id="submitBtn">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Submit Booking Request</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    let availabilityCheckTimeout = null;
+
+    // Set min and max dates
+    const today = new Date().toISOString().split('T')[0];
+    const maxDate = new Date();
+    maxDate.setDate(maxDate.getDate() + 90);
+    document.getElementById('bookingDate').min = today;
+    document.getElementById('bookingDate').max = maxDate.toISOString().split('T')[0];
+
+    // Pre-fill from URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('venue')) {
+        document.getElementById('venueSelect').value = urlParams.get('venue');
+    }
+    if (urlParams.has('date')) {
+        document.getElementById('bookingDate').value = urlParams.get('date');
+    }
+    if (urlParams.has('start')) {
+        document.getElementById('startTime').value = urlParams.get('start');
+    }
+    if (urlParams.has('end')) {
+        document.getElementById('endTime').value = urlParams.get('end');
+    }
+
+    // Check availability on input change
+    document.getElementById('venueSelect').addEventListener('change', debounceCheckAvailability);
+    document.getElementById('bookingDate').addEventListener('change', debounceCheckAvailability);
+    document.getElementById('startTime').addEventListener('change', debounceCheckAvailability);
+    document.getElementById('endTime').addEventListener('change', debounceCheckAvailability);
+
+    function debounceCheckAvailability() {
+        clearTimeout(availabilityCheckTimeout);
+        availabilityCheckTimeout = setTimeout(checkAvailability, 500);
+    }
+
+    async function checkAvailability() {
+        const venueId = document.getElementById('venueSelect').value;
+        const date = document.getElementById('bookingDate').value;
+        const startTime = document.getElementById('startTime').value;
+        const endTime = document.getElementById('endTime').value;
+        
+        if (!venueId || !date || !startTime || !endTime) {
+            document.getElementById('availabilityStatus').innerHTML = `
+                <i class="fas fa-info-circle"></i>
+                <span>Select venue, date, and time to check availability</span>
+            `;
+            document.getElementById('availabilityStatus').className = 'availability-status status-checking';
+            return;
+        }
+        
+        // Validate time range
+        if (startTime >= endTime) {
+            document.getElementById('availabilityStatus').innerHTML = `
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>End time must be after start time</span>
+            `;
+            document.getElementById('availabilityStatus').className = 'availability-status status-unavailable';
+            return;
+        }
+        
+        document.getElementById('availabilityStatus').innerHTML = `
+            <i class="fas fa-spinner fa-spin"></i>
+            <span>Checking availability...</span>
+        `;
+        document.getElementById('availabilityStatus').className = 'availability-status status-checking';
+        
+        try {
+            const response = await fetch('/bookings/api/check-availability', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    venue_id: parseInt(venueId),
+                    start_time: `${date}T${startTime}:00`,
+                    end_time: `${date}T${endTime}:00`
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.available) {
+                document.getElementById('availabilityStatus').innerHTML = `
+                    <i class="fas fa-check-circle"></i>
+                    <span>✓ Venue is available for the selected time slot!</span>
+                `;
+                document.getElementById('availabilityStatus').className = 'availability-status status-available';
+            } else {
+                document.getElementById('availabilityStatus').innerHTML = `
+                    <i class="fas fa-times-circle"></i>
+                    <span>✗ Venue is not available for the selected time slot.</span>
+                `;
+                document.getElementById('availabilityStatus').className = 'availability-status status-unavailable';
+            }
+        } catch (error) {
+            console.error('Error checking availability:', error);
+            document.getElementById('availabilityStatus').innerHTML = `
+                <i class="fas fa-exclamation-circle"></i>
+                <span>Failed to check availability. Please try again.</span>
+            `;
+            document.getElementById('availabilityStatus').className = 'availability-status status-unavailable';
+        }
+    }
+
+    // Form submission
+    document.getElementById('bookingForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const submitBtn = document.getElementById('submitBtn');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+        
+        const formData = new FormData(this);
+        
+        try {
+            const response = await fetch('{{ url_for("booking.create") }}', {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (response.redirected) {
+                window.location.href = response.url;
+            } else {
+                const data = await response.json();
+                if (data.error) {
+                    showToast(data.error, 'error');
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                }
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showToast('An error occurred. Please try again.', 'error');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+        }
+    });
+
+    function showToast(message, type) {
+        const flashContainer = document.querySelector('.flash-container');
+        if (flashContainer) {
+            const toast = document.createElement('div');
+            toast.className = `flash-message flash-${type}`;
+            toast.innerHTML = `
+                <div class="flash-icon">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                </div>
+                <div class="flash-content">
+                    <span>${escapeHtml(message)}</span>
+                </div>
+                <button class="flash-close">&times;</button>
+                <div class="flash-progress"></div>
+            `;
+            flashContainer.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideOut 0.5s ease forwards';
+                setTimeout(() => toast.remove(), 500);
+            }, 5000);
+        }
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+</script>
+{% endblock %}

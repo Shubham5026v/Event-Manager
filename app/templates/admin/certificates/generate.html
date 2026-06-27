@@ -1,0 +1,784 @@
+{% extends "base.html" %}
+
+{% block title %}Generate Certificates - EventX Neural Certificates{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Generate Certificate Styles */
+    .generate-container {
+        padding: 2rem;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    /* Event Header */
+    .event-header {
+        margin-bottom: 2rem;
+        padding: 2rem;
+        background: linear-gradient(135deg, rgba(43, 110, 255, 0.15), rgba(155, 77, 255, 0.15));
+        border-radius: 2rem;
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .event-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(0, 255, 255, 0.1), transparent);
+        animation: rotate 20s linear infinite;
+    }
+
+    @keyframes rotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    .event-header-content {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .event-info h1 {
+        font-size: 2rem;
+        font-weight: 800;
+        font-family: 'Orbitron', monospace;
+        margin-bottom: 0.5rem;
+    }
+
+    .event-meta {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        color: #99aaff;
+        font-size: 0.9rem;
+    }
+
+    .event-stats {
+        display: flex;
+        gap: 1.5rem;
+    }
+
+    .stat-chip {
+        background: rgba(0, 0, 0, 0.3);
+        padding: 0.5rem 1rem;
+        border-radius: 40px;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        border: 1px solid rgba(0, 255, 255, 0.2);
+    }
+
+    /* Configuration Panel */
+    .config-panel {
+        background: rgba(8, 18, 34, 0.6);
+        backdrop-filter: blur(12px);
+        border-radius: 1.5rem;
+        border: 1px solid rgba(0, 255, 255, 0.2);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .config-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #00ffff;
+    }
+
+    .config-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .config-group {
+        margin-bottom: 1rem;
+    }
+
+    .config-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: #99aaff;
+        font-size: 0.85rem;
+    }
+
+    .config-group select,
+    .config-group input,
+    .config-group textarea {
+        width: 100%;
+        padding: 0.7rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        border-radius: 8px;
+        color: white;
+        font-family: inherit;
+    }
+
+    .config-group select:focus,
+    .config-group input:focus,
+    .config-group textarea:focus {
+        outline: none;
+        border-color: #00ffff;
+    }
+
+    /* Teams Grid */
+    .teams-section {
+        background: rgba(8, 18, 34, 0.6);
+        backdrop-filter: blur(12px);
+        border-radius: 1.5rem;
+        border: 1px solid rgba(0, 255, 255, 0.2);
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .section-header {
+        padding: 1.2rem 1.5rem;
+        background: linear-gradient(135deg, rgba(43, 110, 255, 0.1), rgba(155, 77, 255, 0.1));
+        border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .section-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .select-all {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .teams-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 1rem;
+        padding: 1.5rem;
+    }
+
+    .team-select-card {
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 1rem;
+        padding: 1rem;
+        border: 1px solid rgba(0, 255, 255, 0.2);
+        transition: all 0.3s;
+        cursor: pointer;
+        position: relative;
+    }
+
+    .team-select-card:hover {
+        border-color: #00ffff;
+        transform: translateY(-2px);
+    }
+
+    .team-select-card.selected {
+        border-color: #00ff88;
+        background: rgba(0, 255, 136, 0.05);
+    }
+
+    .team-checkbox {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+    }
+
+    .team-checkbox input {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+    }
+
+    .team-name {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        padding-right: 2rem;
+    }
+
+    .team-details {
+        display: flex;
+        gap: 1rem;
+        font-size: 0.8rem;
+        color: #99aaff;
+        margin-bottom: 0.5rem;
+    }
+
+    .team-score {
+        font-family: 'Orbitron', monospace;
+        color: #00ffff;
+        font-weight: bold;
+    }
+
+    .team-rank {
+        display: inline-block;
+        padding: 0.2rem 0.5rem;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+    }
+
+    .rank-1 { background: rgba(255, 170, 51, 0.2); color: #ffaa33; }
+    .rank-2 { background: rgba(192, 192, 192, 0.2); color: #c0c0c0; }
+    .rank-3 { background: rgba(205, 127, 50, 0.2); color: #cd7f32; }
+
+    /* Preview Section */
+    .preview-section {
+        background: rgba(8, 18, 34, 0.6);
+        backdrop-filter: blur(12px);
+        border-radius: 1.5rem;
+        border: 1px solid rgba(0, 255, 255, 0.2);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .preview-container {
+        background: white;
+        border-radius: 1rem;
+        overflow: hidden;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        margin-top: 1rem;
+    }
+
+    .preview-placeholder {
+        text-align: center;
+        padding: 3rem;
+        color: #666;
+    }
+
+    /* Action Buttons */
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+    }
+
+    .btn-primary-large {
+        padding: 1rem 2rem;
+        background: linear-gradient(135deg, #2b6eff, #9b4dff);
+        border: none;
+        border-radius: 40px;
+        color: white;
+        font-weight: 700;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-primary-large:hover {
+        transform: scale(1.02);
+        box-shadow: 0 5px 20px rgba(43, 110, 255, 0.4);
+    }
+
+    .btn-secondary-large {
+        padding: 1rem 2rem;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        border-radius: 40px;
+        color: white;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-secondary-large:hover {
+        background: rgba(0, 255, 255, 0.1);
+    }
+
+    /* Progress Modal */
+    .progress-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.9);
+        backdrop-filter: blur(20px);
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .progress-modal.active {
+        display: flex;
+    }
+
+    .progress-content {
+        background: rgba(8, 18, 34, 0.95);
+        backdrop-filter: blur(20px);
+        border-radius: 2rem;
+        padding: 2rem;
+        max-width: 500px;
+        width: 90%;
+        text-align: center;
+        border: 1px solid rgba(0, 255, 255, 0.3);
+    }
+
+    .progress-bar-container {
+        width: 100%;
+        height: 10px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        overflow: hidden;
+        margin: 1.5rem 0;
+    }
+
+    .progress-fill {
+        width: 0%;
+        height: 100%;
+        background: linear-gradient(90deg, #00ffff, #6b2eff);
+        transition: width 0.3s ease;
+    }
+
+    @media (max-width: 768px) {
+        .generate-container {
+            padding: 1rem;
+        }
+        
+        .teams-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .event-header-content {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .action-buttons {
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="generate-container">
+    <!-- Event Header -->
+    <div class="event-header" data-aos="fade-up">
+        <div class="event-header-content">
+            <div class="event-info">
+                <h1>
+                    <i class="fas fa-certificate"></i>
+                    <span>Generate Certificates</span>
+                </h1>
+                <div class="event-meta">
+                    <span><i class="fas fa-calendar-alt"></i> {{ event.event_date.strftime('%B %d, %Y') }}</span>
+                    <span><i class="fas fa-map-marker-alt"></i> {{ event.venue or 'TBD' }}</span>
+                    <span><i class="fas fa-chart-line"></i> {{ event.status|title }}</span>
+                </div>
+            </div>
+            <div class="event-stats">
+                <div class="stat-chip">
+                    <i class="fas fa-users"></i>
+                    <span>{{ team_count }} Teams</span>
+                </div>
+                <div class="stat-chip">
+                    <i class="fas fa-certificate"></i>
+                    <span>{{ existing_certificates }} Certificates</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Configuration Panel -->
+    <div class="config-panel" data-aos="fade-up" data-aos-delay="50">
+        <div class="config-title">
+            <i class="fas fa-sliders-h"></i>
+            <span>Certificate Configuration</span>
+        </div>
+        <div class="config-grid">
+            <div class="config-group">
+                <label>Certificate Template</label>
+                <select id="templateSelect">
+                    <option value="default">Default Certificate</option>
+                    <option value="elegant">Elegant Design</option>
+                    <option value="modern">Modern Style</option>
+                    <option value="classic">Classic Certificate</option>
+                </select>
+            </div>
+            <div class="config-group">
+                <label>Custom Message (Optional)</label>
+                <textarea id="customMessage" rows="2" placeholder="Add a personalized message for all certificates..."></textarea>
+            </div>
+            <div class="config-group">
+                <label>Email Options</label>
+                <label style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem;">
+                    <input type="checkbox" id="sendEmails" checked>
+                    <span>Send certificates via email to teams</span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Teams Selection -->
+    <div class="teams-section" data-aos="fade-up" data-aos-delay="100">
+        <div class="section-header">
+            <div class="section-title">
+                <i class="fas fa-users"></i>
+                <span>Select Teams for Certificate Generation</span>
+            </div>
+            <div class="select-all">
+                <label style="display: flex; align-items: center; gap: 0.5rem;">
+                    <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll()">
+                    <span>Select All Teams</span>
+                </label>
+            </div>
+        </div>
+        <div class="teams-grid" id="teamsGrid">
+            {% for team in teams %}
+            <div class="team-select-card" data-team-id="{{ team.id }}" onclick="toggleTeamSelection(this)">
+                <div class="team-checkbox">
+                    <input type="checkbox" class="team-checkbox-input" data-team-id="{{ team.id }}" 
+                           {% if not team.final_score and team.final_score != 0 %}disabled{% endif %}>
+                </div>
+                <div class="team-name">{{ team.name }}</div>
+                <div class="team-details">
+                    <span><i class="fas fa-user-tie"></i> {{ team.leader_name }}</span>
+                    <span><i class="fas fa-envelope"></i> {{ team.leader_email }}</span>
+                </div>
+                <div class="team-details">
+                    <span class="team-score">
+                        <i class="fas fa-chart-line"></i> Score: 
+                        {% if team.final_score %}
+                            {{ "%.1f"|format(team.final_score) }}
+                        {% else %}
+                            <span class="text-muted">Not calculated</span>
+                        {% endif %}
+                    </span>
+                    {% if team.final_rank %}
+                    <span class="team-rank rank-{{ team.final_rank }}">
+                        <i class="fas fa-trophy"></i> {{ team.final_rank }}{% if team.final_rank == 1 %}st{% elif team.final_rank == 2 %}nd{% elif team.final_rank == 3 %}rd{% else %}th{% endif %} Place
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Preview Section -->
+    <div class="preview-section" data-aos="fade-up" data-aos-delay="150">
+        <div class="section-title">
+            <i class="fas fa-eye"></i>
+            <span>Certificate Preview</span>
+        </div>
+        <div id="previewContainer" class="preview-container">
+            <div class="preview-placeholder">
+                <i class="fas fa-certificate" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                <p>Select a team to preview certificate</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons" data-aos="fade-up" data-aos-delay="200">
+        <button class="btn-secondary-large" onclick="window.history.back()">
+            <i class="fas fa-arrow-left"></i>
+            <span>Cancel</span>
+        </button>
+        <button class="btn-primary-large" onclick="generateCertificates()">
+            <i class="fas fa-certificate"></i>
+            <span>Generate Certificates</span>
+        </button>
+    </div>
+</div>
+
+<!-- Progress Modal -->
+<div id="progressModal" class="progress-modal">
+    <div class="progress-content">
+        <i class="fas fa-spinner fa-spin" style="font-size: 3rem; color: #00ffff;"></i>
+        <h3 style="margin-top: 1rem;">Generating Certificates</h3>
+        <p id="progressMessage">Please wait while we generate certificates...</p>
+        <div class="progress-bar-container">
+            <div id="progressFill" class="progress-fill"></div>
+        </div>
+        <p id="progressStats">0 / 0 certificates generated</p>
+    </div>
+</div>
+
+<script>
+    let selectedTeams = new Set();
+    let teamData = {};
+
+    // Initialize team data
+    {% for team in teams %}
+    teamData[{{ team.id }}] = {
+        id: {{ team.id }},
+        name: "{{ team.name|escapejs }}",
+        leader: "{{ team.leader_name|escapejs }}",
+        email: "{{ team.leader_email|escapejs }}",
+        score: {{ team.final_score if team.final_score else 0 }},
+        rank: {{ team.final_rank if team.final_rank else 0 }},
+        members: {{ team.members|tojson|safe if team.members else '[]' }}
+    };
+    {% endfor %}
+
+    // Toggle team selection
+    function toggleTeamSelection(card) {
+        const checkbox = card.querySelector('.team-checkbox-input');
+        if (checkbox.disabled) {
+            showToast('This team needs scores to generate a certificate', 'warning');
+            return;
+        }
+        
+        checkbox.checked = !checkbox.checked;
+        if (checkbox.checked) {
+            card.classList.add('selected');
+            selectedTeams.add(parseInt(card.dataset.teamId));
+        } else {
+            card.classList.remove('selected');
+            selectedTeams.delete(parseInt(card.dataset.teamId));
+        }
+        
+        updateSelectAllCheckbox();
+        updatePreview();
+    }
+
+    // Toggle select all
+    function toggleSelectAll() {
+        const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+        const checkboxes = document.querySelectorAll('.team-checkbox-input:not([disabled])');
+        
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = selectAllCheckbox.checked;
+            const card = checkbox.closest('.team-select-card');
+            if (checkbox.checked) {
+                card.classList.add('selected');
+                selectedTeams.add(parseInt(card.dataset.teamId));
+            } else {
+                card.classList.remove('selected');
+                selectedTeams.delete(parseInt(card.dataset.teamId));
+            }
+        });
+        
+        updatePreview();
+    }
+
+    // Update select all checkbox state
+    function updateSelectAllCheckbox() {
+        const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+        const checkboxes = document.querySelectorAll('.team-checkbox-input:not([disabled])');
+        const checkedCount = document.querySelectorAll('.team-checkbox-input:checked:not([disabled])').length;
+        
+        if (checkedCount === 0) {
+            selectAllCheckbox.checked = false;
+            selectAllCheckbox.indeterminate = false;
+        } else if (checkedCount === checkboxes.length) {
+            selectAllCheckbox.checked = true;
+            selectAllCheckbox.indeterminate = false;
+        } else {
+            selectAllCheckbox.indeterminate = true;
+        }
+    }
+
+    // Update preview
+    let previewTimeout;
+    function updatePreview() {
+        clearTimeout(previewTimeout);
+        previewTimeout = setTimeout(() => {
+            const selected = document.querySelector('.team-checkbox-input:checked');
+            if (selected) {
+                const teamId = parseInt(selected.dataset.teamId);
+                previewCertificate(teamId);
+            } else {
+                document.getElementById('previewContainer').innerHTML = `
+                    <div class="preview-placeholder">
+                        <i class="fas fa-certificate" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                        <p>Select a team to preview certificate</p>
+                    </div>
+                `;
+            }
+        }, 300);
+    }
+
+    // Preview certificate
+    function previewCertificate(teamId) {
+        const team = teamData[teamId];
+        if (!team) return;
+        
+        const template = document.getElementById('templateSelect').value;
+        const customMessage = document.getElementById('customMessage').value;
+        
+        fetch('/certificates/api/preview', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                team_id: teamId,
+                event_id: {{ event.id }},
+                template: template,
+                custom_message: customMessage
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.html) {
+                document.getElementById('previewContainer').innerHTML = data.html;
+            }
+        })
+        .catch(error => {
+            console.error('Preview error:', error);
+        });
+    }
+
+    // Generate certificates
+    function generateCertificates() {
+        const selectedIds = Array.from(selectedTeams);
+        
+        if (selectedIds.length === 0) {
+            showToast('Please select at least one team', 'warning');
+            return;
+        }
+        
+        if (confirm(`Generate certificates for ${selectedIds.length} team(s)? This may take a few moments.`)) {
+            const customMessage = document.getElementById('customMessage').value;
+            const sendEmails = document.getElementById('sendEmails').checked;
+            const template = document.getElementById('templateSelect').value;
+            
+            showProgressModal();
+            
+            fetch('/certificates/api/generate-bulk', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    event_id: {{ event.id }},
+                    team_ids: selectedIds,
+                    custom_message: customMessage,
+                    send_emails: sendEmails,
+                    template: template
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.batch_id) {
+                    pollBatchStatus(data.batch_id);
+                } else {
+                    hideProgressModal();
+                    showToast('Certificate generation started!', 'success');
+                    setTimeout(() => {
+                        window.location.href = "{{ url_for('certificates.admin_index') }}";
+                    }, 2000);
+                }
+            })
+            .catch(error => {
+                console.error('Generation error:', error);
+                hideProgressModal();
+                showToast('Failed to start certificate generation', 'error');
+            });
+        }
+    }
+
+    // Poll batch status
+    let statusInterval;
+    function pollBatchStatus(batchId) {
+        statusInterval = setInterval(() => {
+            fetch(`/certificates/api/batch/${batchId}/status`)
+                .then(response => response.json())
+                .then(data => {
+                    const progress = data.progress || 0;
+                    const generated = data.generated || 0;
+                    const total = data.total_teams || 0;
+                    
+                    document.getElementById('progressFill').style.width = `${progress}%`;
+                    document.getElementById('progressStats').innerHTML = `${generated} / ${total} certificates generated`;
+                    
+                    if (data.status === 'completed') {
+                        clearInterval(statusInterval);
+                        setTimeout(() => {
+                            hideProgressModal();
+                            showToast(`Successfully generated ${generated} certificates!`, 'success');
+                            window.location.href = "{{ url_for('certificates.admin_index') }}";
+                        }, 1000);
+                    } else if (data.status === 'failed') {
+                        clearInterval(statusInterval);
+                        hideProgressModal();
+                        showToast('Certificate generation failed. Please try again.', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Status poll error:', error);
+                });
+        }, 2000);
+    }
+
+    function showProgressModal() {
+        document.getElementById('progressModal').classList.add('active');
+        document.getElementById('progressFill').style.width = '0%';
+        document.getElementById('progressStats').innerHTML = '0 / 0 certificates generated';
+    }
+
+    function hideProgressModal() {
+        document.getElementById('progressModal').classList.remove('active');
+        if (statusInterval) clearInterval(statusInterval);
+    }
+
+    function showToast(message, type) {
+        const flashContainer = document.querySelector('.flash-container');
+        if (flashContainer) {
+            const toast = document.createElement('div');
+            toast.className = `flash-message flash-${type}`;
+            toast.innerHTML = `
+                <div class="flash-icon">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                </div>
+                <div class="flash-content">
+                    <span>${escapeHtml(message)}</span>
+                </div>
+                <button class="flash-close">&times;</button>
+                <div class="flash-progress"></div>
+            `;
+            flashContainer.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideOut 0.5s ease forwards';
+                setTimeout(() => toast.remove(), 500);
+            }, 5000);
+            
+            toast.querySelector('.flash-close').addEventListener('click', () => {
+                toast.style.animation = 'slideOut 0.3s ease forwards';
+                setTimeout(() => toast.remove(), 300);
+            });
+        }
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+</script>
+{% endblock %}

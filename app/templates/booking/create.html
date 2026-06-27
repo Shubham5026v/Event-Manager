@@ -1,0 +1,389 @@
+{% extends "base.html" %}
+
+{% block title %}Create Booking - EventX{% endblock %}
+
+{% block extra_css %}
+<style>
+    .create-booking-page {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .booking-form {
+        background: rgba(10, 18, 35, 0.75);
+        border: 1px solid rgba(0, 255, 255, 0.15);
+        border-radius: 1.5rem;
+        padding: 2rem;
+    }
+
+    .form-section {
+        margin-bottom: 2rem;
+        padding-bottom: 2rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .form-section:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+
+    .form-section h3 {
+        color: #ffffff;
+        margin-bottom: 1.5rem;
+        font-size: 1.2rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-section h3 i {
+        color: #00ffff;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+        display: block;
+        color: #a5bbff;
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.75rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 0.5rem;
+        color: #ffffff;
+        font-size: 1rem;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: #00ffff;
+        box-shadow: 0 0 0 2px rgba(0, 255, 255, 0.2);
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+    }
+
+    .venue-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .venue-card {
+        background: rgba(0, 255, 255, 0.05);
+        border: 1px solid rgba(0, 255, 255, 0.2);
+        border-radius: 1rem;
+        padding: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .venue-card:hover {
+        transform: translateY(-2px);
+        border-color: #00ffff;
+        background: rgba(0, 255, 255, 0.1);
+    }
+
+    .venue-card.selected {
+        border-color: #00ffff;
+        background: rgba(0, 255, 255, 0.15);
+        box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+    }
+
+    .venue-name {
+        font-weight: 600;
+        color: #ffffff;
+        margin-bottom: 0.5rem;
+    }
+
+    .venue-details {
+        color: #a5bbff;
+        font-size: 0.9rem;
+    }
+
+    .venue-details div {
+        margin-bottom: 0.25rem;
+    }
+
+    .radio-group {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin-top: 0.5rem;
+    }
+
+    .radio-option {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 0.5rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .radio-option:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(0, 255, 255, 0.3);
+    }
+
+    .radio-option.selected {
+        background: rgba(0, 255, 255, 0.1);
+        border-color: #00ffff;
+    }
+
+    .radio-option input[type="radio"] {
+        display: none;
+    }
+
+    .radio-option label {
+        margin: 0;
+        cursor: pointer;
+        color: #ffffff;
+        font-weight: 500;
+    }
+
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .btn-submit {
+        background: linear-gradient(135deg, #00ffff, #007bff);
+        color: #ffffff;
+        border: none;
+        padding: 1rem 2rem;
+        border-radius: 0.75rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 255, 255, 0.3);
+    }
+
+    .btn-cancel {
+        background: rgba(255, 255, 255, 0.1);
+        color: #ffffff;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        padding: 1rem 2rem;
+        border-radius: 0.75rem;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.3s ease;
+    }
+
+    .btn-cancel:hover {
+        background: rgba(255, 255, 255, 0.2);
+        border-color: rgba(255, 255, 255, 0.4);
+    }
+
+    @media (max-width: 768px) {
+        .venue-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+
+        .radio-group {
+            grid-template-columns: 1fr;
+        }
+
+        .form-actions {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="create-booking-page">
+    <div style="margin-bottom: 2rem;">
+        <h1>Create Venue Booking</h1>
+        <p style="color: #a5bbff;">Book a venue for your event or practice session.</p>
+    </div>
+
+    <form method="POST" class="booking-form">
+        <!-- Basic Information -->
+        <div class="form-section">
+            <h3><i class="fas fa-info-circle"></i> Basic Information</h3>
+
+            <div class="form-group">
+                <label for="title">Booking Title *</label>
+                <input type="text" id="title" name="title" class="form-control" required
+                       placeholder="e.g., Annual Cultural Fest Practice">
+            </div>
+
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea id="description" name="description" class="form-control" rows="3"
+                          placeholder="Brief description of your event"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Event Type *</label>
+                <div class="radio-group">
+                    <div class="radio-option" data-value="practice">
+                        <input type="radio" id="practice" name="event_type" value="practice" checked>
+                        <label for="practice">Practice Session</label>
+                    </div>
+                    <div class="radio-option" data-value="cultural">
+                        <input type="radio" id="cultural" name="event_type" value="cultural">
+                        <label for="cultural">Cultural Event</label>
+                    </div>
+                    <div class="radio-option" data-value="academic">
+                        <input type="radio" id="academic" name="event_type" value="academic">
+                        <label for="academic">Academic Event</label>
+                    </div>
+                    <div class="radio-option" data-value="other">
+                        <input type="radio" id="other" name="event_type" value="other">
+                        <label for="other">Other</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Venue Selection -->
+        <div class="form-section">
+            <h3><i class="fas fa-map-marker-alt"></i> Venue Selection</h3>
+
+            <div class="venue-grid">
+                {% for venue in venues %}
+                    <div class="venue-card" data-venue-id="{{ venue.id }}">
+                        <div class="venue-name">{{ venue.name }}</div>
+                        <div class="venue-details">
+                            <div><strong>Type:</strong> {{ venue.type.value|title }}</div>
+                            <div><strong>Capacity:</strong> {{ venue.capacity }} people</div>
+                            <div><strong>Building:</strong> {{ venue.building or 'N/A' }}</div>
+                        </div>
+                        <input type="radio" name="venue_id" value="{{ venue.id }}" style="display: none;">
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Date & Time -->
+        <div class="form-section">
+            <h3><i class="fas fa-calendar-alt"></i> Date & Time</h3>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="date">Date *</label>
+                    <input type="date" id="date" name="date" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="start_time">Start Time *</label>
+                    <input type="time" id="start_time" name="start_time" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="end_time">End Time *</label>
+                    <input type="time" id="end_time" name="end_time" class="form-control" required>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="setup_time">Setup Time (minutes)</label>
+                    <input type="number" id="setup_time" name="setup_time" class="form-control" value="30" min="0">
+                </div>
+
+                <div class="form-group">
+                    <label for="cleanup_time">Cleanup Time (minutes)</label>
+                    <input type="number" id="cleanup_time" name="cleanup_time" class="form-control" value="30" min="0">
+                </div>
+
+                <div class="form-group">
+                    <label for="expected_attendees">Expected Attendees</label>
+                    <input type="number" id="expected_attendees" name="expected_attendees" class="form-control" min="1">
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional Requirements -->
+        <div class="form-section">
+            <h3><i class="fas fa-list-check"></i> Additional Requirements</h3>
+
+            <div class="form-group">
+                <label for="requirements">Special Requirements</label>
+                <textarea id="requirements" name="requirements" class="form-control" rows="3"
+                          placeholder="Any special equipment or setup requirements"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="special_requests">Special Requests</label>
+                <textarea id="special_requests" name="special_requests" class="form-control" rows="2"
+                          placeholder="Any additional requests or notes"></textarea>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <a href="{{ url_for('booking.index') }}" class="btn-cancel">Cancel</a>
+            <button type="submit" class="btn-submit">
+                <i class="fas fa-paper-plane"></i>
+                Submit Booking
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Venue selection
+    const venueCards = document.querySelectorAll('.venue-card');
+    venueCards.forEach(card => {
+        card.addEventListener('click', function() {
+            venueCards.forEach(c => c.classList.remove('selected'));
+            this.classList.add('selected');
+            const radio = this.querySelector('input[type="radio"]');
+            radio.checked = true;
+        });
+    });
+
+    // Radio button selection
+    const radioOptions = document.querySelectorAll('.radio-option');
+    radioOptions.forEach(option => {
+        option.addEventListener('click', function() {
+            const group = this.parentElement;
+            group.querySelectorAll('.radio-option').forEach(opt => opt.classList.remove('selected'));
+            this.classList.add('selected');
+            const radio = this.querySelector('input[type="radio"]');
+            radio.checked = true;
+        });
+    });
+
+    // Set minimum date to today
+    const dateInput = document.getElementById('date');
+    const today = new Date().toISOString().split('T')[0];
+    dateInput.setAttribute('min', today);
+});
+</script>
+{% endblock %}

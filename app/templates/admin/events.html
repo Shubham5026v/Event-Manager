@@ -1,0 +1,1149 @@
+{% extends "base.html" %}
+
+{% block title %}Event Management - EventX Neural Control{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Events Page Specific Styles */
+    .events-container {
+        padding: 2rem;
+        max-width: 1600px;
+        margin: 0 auto;
+    }
+
+    /* Page Header */
+    .page-header {
+        margin-bottom: 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .page-title {
+        font-size: 2rem;
+        font-weight: 800;
+        font-family: 'Orbitron', monospace;
+        background: linear-gradient(135deg, #fff, #00ffff);
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+    }
+
+    .page-title i {
+        background: linear-gradient(135deg, #00ffff, #6b2eff);
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+        font-size: 2rem;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 1rem;
+    }
+
+    /* Filter Bar */
+    .filter-bar {
+        background: rgba(8, 18, 34, 0.6);
+        backdrop-filter: blur(12px);
+        border-radius: 1rem;
+        padding: 1rem;
+        margin-bottom: 2rem;
+        border: 1px solid rgba(0, 255, 255, 0.2);
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .filter-group {
+        flex: 1;
+        min-width: 150px;
+    }
+
+    .filter-group label {
+        display: block;
+        font-size: 0.75rem;
+        color: #00ffff;
+        margin-bottom: 0.3rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .filter-group select,
+    .filter-group input {
+        width: 100%;
+        padding: 0.6rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        border-radius: 8px;
+        color: white;
+        font-family: inherit;
+        cursor: pointer;
+    }
+
+    .filter-group select:focus,
+    .filter-group input:focus {
+        outline: none;
+        border-color: #00ffff;
+    }
+
+    .search-group {
+        flex: 2;
+        min-width: 200px;
+    }
+
+    .search-group input {
+        width: 100%;
+    }
+
+    /* Stats Summary */
+    .stats-summary {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-summary-card {
+        background: rgba(8, 18, 34, 0.6);
+        backdrop-filter: blur(12px);
+        border-radius: 1rem;
+        padding: 1rem;
+        text-align: center;
+        border: 1px solid rgba(0, 255, 255, 0.2);
+        transition: all 0.3s;
+    }
+
+    .stat-summary-card:hover {
+        transform: translateY(-3px);
+        border-color: #00ffff;
+    }
+
+    .stat-summary-value {
+        font-size: 1.8rem;
+        font-weight: 800;
+        font-family: 'Orbitron', monospace;
+        color: #00ffff;
+    }
+
+    .stat-summary-label {
+        font-size: 0.8rem;
+        color: #99aaff;
+        margin-top: 0.3rem;
+    }
+
+    /* Events Grid View */
+    .view-toggle {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .view-btn {
+        padding: 0.5rem 1rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        border-radius: 8px;
+        color: #99aaff;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .view-btn.active {
+        background: linear-gradient(135deg, #2b6eff, #9b4dff);
+        color: white;
+        border-color: transparent;
+    }
+
+    .view-btn:hover:not(.active) {
+        background: rgba(0, 255, 255, 0.1);
+        color: #00ffff;
+    }
+
+    /* Grid View */
+    .events-grid-view {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 1.5rem;
+        display: none;
+    }
+
+    .events-grid-view.active {
+        display: grid;
+    }
+
+    .event-grid-card {
+        background: rgba(8, 18, 34, 0.6);
+        backdrop-filter: blur(12px);
+        border-radius: 1.5rem;
+        border: 1px solid rgba(0, 255, 255, 0.2);
+        overflow: hidden;
+        transition: all 0.3s;
+        cursor: pointer;
+    }
+
+    .event-grid-card:hover {
+        transform: translateY(-5px);
+        border-color: #00ffff;
+        box-shadow: 0 10px 30px rgba(0, 255, 255, 0.1);
+    }
+
+    .event-card-header {
+        position: relative;
+        padding: 1.5rem;
+        background: linear-gradient(135deg, rgba(43, 110, 255, 0.1), rgba(155, 77, 255, 0.1));
+    }
+
+    .event-status-badge {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+    }
+
+    .event-card-header h3 {
+        font-size: 1.3rem;
+        margin-bottom: 0.5rem;
+        padding-right: 80px;
+    }
+
+    .event-date-large {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #00ffff;
+        font-size: 0.85rem;
+        margin-top: 0.5rem;
+    }
+
+    .event-card-body {
+        padding: 1.5rem;
+    }
+
+    .event-description {
+        color: #99aaff;
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+        line-height: 1.5;
+    }
+
+    .event-meta-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.8rem;
+        margin-bottom: 1rem;
+        padding-top: 0.5rem;
+        border-top: 1px solid rgba(0, 255, 255, 0.1);
+    }
+
+    .event-meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.8rem;
+        color: #bbccff;
+    }
+
+    .event-meta-item i {
+        color: #00ffff;
+        width: 20px;
+    }
+
+    .event-card-footer {
+        padding: 1rem 1.5rem;
+        border-top: 1px solid rgba(0, 255, 255, 0.1);
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    /* Table View */
+    .events-table-view {
+        background: rgba(8, 18, 34, 0.6);
+        backdrop-filter: blur(12px);
+        border-radius: 1.5rem;
+        border: 1px solid rgba(0, 255, 255, 0.2);
+        overflow-x: auto;
+    }
+
+    .events-table-view.active {
+        display: block;
+    }
+
+    .events-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .events-table th {
+        text-align: left;
+        padding: 1rem 1.5rem;
+        background: rgba(0, 255, 255, 0.05);
+        font-weight: 600;
+        color: #00ffff;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+    }
+
+    .events-table td {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid rgba(0, 255, 255, 0.1);
+        color: #e0e8ff;
+    }
+
+    .events-table tr:hover {
+        background: rgba(0, 255, 255, 0.05);
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .action-btn {
+        padding: 0.4rem 0.8rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: none;
+        border-radius: 8px;
+        color: #99aaff;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .action-btn:hover {
+        background: rgba(0, 255, 255, 0.2);
+        color: #00ffff;
+        transform: scale(1.05);
+    }
+
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.85);
+        backdrop-filter: blur(15px);
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal.active {
+        display: flex;
+    }
+
+    .modal-content {
+        background: rgba(8, 18, 34, 0.95);
+        backdrop-filter: blur(20px);
+        border-radius: 2rem;
+        padding: 2rem;
+        max-width: 600px;
+        width: 90%;
+        max-height: 85vh;
+        overflow-y: auto;
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        animation: modalSlideIn 0.3s ease;
+    }
+
+    @keyframes modalSlideIn {
+        from {
+            transform: translateY(-50px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+    }
+
+    .modal-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        font-family: 'Orbitron', monospace;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .modal-close {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        color: #fff;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .modal-close:hover {
+        color: #ff3366;
+        transform: rotate(90deg);
+    }
+
+    .form-group {
+        margin-bottom: 1.2rem;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: #00ffff;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        padding: 0.8rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        border-radius: 12px;
+        color: white;
+        font-family: inherit;
+        transition: all 0.2s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: #00ffff;
+        box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    .modal-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+
+    .btn-primary-modal {
+        flex: 1;
+        padding: 0.8rem;
+        background: linear-gradient(135deg, #2b6eff, #9b4dff);
+        border: none;
+        border-radius: 40px;
+        color: white;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+
+    .btn-primary-modal:hover {
+        transform: scale(1.02);
+        box-shadow: 0 5px 20px rgba(43, 110, 255, 0.4);
+    }
+
+    .btn-secondary-modal {
+        flex: 1;
+        padding: 0.8rem;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        border-radius: 40px;
+        color: white;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .btn-secondary-modal:hover {
+        background: rgba(0, 255, 255, 0.1);
+    }
+
+    .btn-danger-modal {
+        flex: 1;
+        padding: 0.8rem;
+        background: rgba(255, 51, 102, 0.2);
+        border: 1px solid rgba(255, 51, 102, 0.5);
+        border-radius: 40px;
+        color: #ff3366;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .btn-danger-modal:hover {
+        background: rgba(255, 51, 102, 0.3);
+    }
+
+    /* Delete Modal */
+    .delete-warning {
+        text-align: center;
+        padding: 1rem;
+    }
+
+    .delete-warning i {
+        font-size: 4rem;
+        color: #ff3366;
+        margin-bottom: 1rem;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 4rem;
+        background: rgba(8, 18, 34, 0.6);
+        border-radius: 2rem;
+        border: 1px solid rgba(0, 255, 255, 0.2);
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        color: #00ffff;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    .empty-state h3 {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .empty-state p {
+        color: #99aaff;
+        margin-bottom: 1.5rem;
+    }
+
+    /* Loading Spinner */
+    .loading-spinner {
+        text-align: center;
+        padding: 3rem;
+    }
+
+    .loading-spinner i {
+        font-size: 2rem;
+        color: #00ffff;
+    }
+
+    @media (max-width: 768px) {
+        .events-container {
+            padding: 1rem;
+        }
+        
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+        
+        .filter-bar {
+            flex-direction: column;
+        }
+        
+        .filter-group,
+        .search-group {
+            width: 100%;
+        }
+        
+        .events-grid-view {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="events-container">
+    <!-- Page Header -->
+    <div class="page-header" data-aos="fade-up">
+        <div class="page-title">
+            <i class="fas fa-calendar-alt"></i>
+            <span>Event Management</span>
+        </div>
+        <div class="header-actions">
+            <button class="btn-glass" onclick="openModal('createEventModal')">
+                <i class="fas fa-plus-circle"></i>
+                <span>Create Event</span>
+            </button>
+            <button class="btn-glass" onclick="exportEvents()">
+                <i class="fas fa-download"></i>
+                <span>Export</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Stats Summary -->
+    <div class="stats-summary" data-aos="fade-up" data-aos-delay="50">
+        <div class="stat-summary-card">
+            <div class="stat-summary-value" id="totalEventsCount">0</div>
+            <div class="stat-summary-label">Total Events</div>
+        </div>
+        <div class="stat-summary-card">
+            <div class="stat-summary-value" id="activeEventsCount">0</div>
+            <div class="stat-summary-label">Active Events</div>
+        </div>
+        <div class="stat-summary-card">
+            <div class="stat-summary-value" id="upcomingEventsCount">0</div>
+            <div class="stat-summary-label">Upcoming</div>
+        </div>
+        <div class="stat-summary-card">
+            <div class="stat-summary-value" id="pastEventsCount">0</div>
+            <div class="stat-summary-label">Past Events</div>
+        </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar" data-aos="fade-up" data-aos-delay="100">
+        <div class="filter-group">
+            <label>Status Filter</label>
+            <select id="statusFilter" onchange="filterEvents()">
+                <option value="all">All Events</option>
+                <option value="active">Active</option>
+                <option value="upcoming">Upcoming</option>
+                <option value="past">Past</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>Event Type</label>
+            <select id="typeFilter" onchange="filterEvents()">
+                <option value="all">All Types</option>
+                <option value="hackathon">Hackathon</option>
+                <option value="workshop">Workshop</option>
+                <option value="seminar">Seminar</option>
+                <option value="competition">Competition</option>
+            </select>
+        </div>
+        <div class="search-group">
+            <label>Search Events</label>
+            <input type="text" id="searchInput" placeholder="Search by name, venue..." onkeyup="filterEvents()">
+        </div>
+        <div class="view-toggle">
+            <button class="view-btn active" onclick="setView('grid')" id="gridViewBtn">
+                <i class="fas fa-th-large"></i>
+                <span>Grid</span>
+            </button>
+            <button class="view-btn" onclick="setView('table')" id="tableViewBtn">
+                <i class="fas fa-table"></i>
+                <span>Table</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Events Grid View -->
+    <div id="eventsGridView" class="events-grid-view active" data-aos="fade-up" data-aos-delay="150">
+        <div class="loading-spinner">
+            <i class="fas fa-spinner fa-spin"></i>
+            <span>Loading events...</span>
+        </div>
+    </div>
+
+    <!-- Events Table View -->
+    <div id="eventsTableView" class="events-table-view">
+        <div class="loading-spinner">
+            <i class="fas fa-spinner fa-spin"></i>
+            <span>Loading events...</span>
+        </div>
+    </div>
+</div>
+
+<!-- Create/Edit Event Modal -->
+<div id="eventModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title" id="modalTitle">
+                <i class="fas fa-calendar-plus"></i>
+                <span>Create New Event</span>
+            </h3>
+            <button class="modal-close" onclick="closeModal('eventModal')">&times;</button>
+        </div>
+        <form id="eventForm">
+            <input type="hidden" id="eventId" name="eventId">
+            <div class="form-group">
+                <label>Event Name *</label>
+                <input type="text" id="eventName" name="name" required placeholder="Enter event name">
+            </div>
+            <div class="form-group">
+                <label>Description</label>
+                <textarea id="eventDescription" name="description" rows="3" placeholder="Describe your event..."></textarea>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Event Date *</label>
+                    <input type="datetime-local" id="eventDate" name="event_date" required>
+                </div>
+                <div class="form-group">
+                    <label>Event Type</label>
+                    <select id="eventType" name="event_type">
+                        <option value="hackathon">Hackathon</option>
+                        <option value="workshop">Workshop</option>
+                        <option value="seminar">Seminar</option>
+                        <option value="competition">Competition</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Venue *</label>
+                    <input type="text" id="eventVenue" name="venue" required placeholder="Event location">
+                </div>
+                <div class="form-group">
+                    <label>Max Teams</label>
+                    <input type="number" id="maxTeams" name="max_teams" placeholder="Unlimited if empty">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Status</label>
+                <select id="eventStatus" name="status">
+                    <option value="upcoming">Upcoming</option>
+                    <option value="active">Active</option>
+                    <option value="past">Past</option>
+                </select>
+            </div>
+            <div class="modal-actions">
+                <button type="submit" class="btn-primary-modal">Save Event</button>
+                <button type="button" class="btn-secondary-modal" onclick="closeModal('eventModal')">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">
+                <i class="fas fa-trash-alt"></i>
+                <span>Delete Event</span>
+            </h3>
+            <button class="modal-close" onclick="closeModal('deleteModal')">&times;</button>
+        </div>
+        <div class="delete-warning">
+            <i class="fas fa-exclamation-triangle"></i>
+            <h4>Are you sure?</h4>
+            <p>This action cannot be undone. All associated teams and scores will be permanently deleted.</p>
+            <p id="deleteEventName" style="color: #ff3366; font-weight: bold; margin-top: 1rem;"></p>
+        </div>
+        <div class="modal-actions">
+            <button class="btn-danger-modal" onclick="confirmDelete()">Delete Permanently</button>
+            <button class="btn-secondary-modal" onclick="closeModal('deleteModal')">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let eventsData = [];
+    let currentView = 'grid';
+    let deleteEventId = null;
+    let currentFilters = {
+        status: 'all',
+        type: 'all',
+        search: ''
+    };
+
+    // Fetch events from API
+    async function fetchEvents() {
+        try {
+            const response = await fetch('/api/admin/events');
+            const data = await response.json();
+            eventsData = data.events || getDemoEvents();
+            updateStats();
+            renderEvents();
+        } catch (error) {
+            console.error('Error fetching events:', error);
+            eventsData = getDemoEvents();
+            updateStats();
+            renderEvents();
+        }
+    }
+
+    function getDemoEvents() {
+        return [
+            { id: 1, name: 'AI Hackathon 2026', description: 'Build the next generation AI solutions', event_date: '2026-04-15T10:00:00', venue: 'Tech Innovation Hub', event_type: 'hackathon', status: 'upcoming', max_teams: 30, teams_count: 12 },
+            { id: 2, name: 'Web3 Summit', description: 'Explore the future of decentralized technology', event_date: '2026-04-20T09:00:00', venue: 'Convention Center', event_type: 'seminar', status: 'upcoming', max_teams: null, teams_count: 8 },
+            { id: 3, name: 'Data Science Workshop', description: 'Hands-on workshop with industry experts', event_date: '2026-04-10T14:00:00', venue: 'Online (Zoom)', event_type: 'workshop', status: 'active', max_teams: 50, teams_count: 32 },
+            { id: 4, name: 'Robotics Challenge', description: 'Competitive robotics engineering challenge', event_date: '2026-04-05T08:00:00', venue: 'Arena Stadium', event_type: 'competition', status: 'active', max_teams: 20, teams_count: 18 },
+            { id: 5, name: 'Cloud Computing Expo', description: 'Latest trends in cloud infrastructure', event_date: '2026-03-28T10:00:00', venue: 'Expo Hall', event_type: 'seminar', status: 'past', max_teams: null, teams_count: 45 }
+        ];
+    }
+
+    function updateStats() {
+        const total = eventsData.length;
+        const active = eventsData.filter(e => e.status === 'active').length;
+        const upcoming = eventsData.filter(e => e.status === 'upcoming').length;
+        const past = eventsData.filter(e => e.status === 'past').length;
+        
+        document.getElementById('totalEventsCount').textContent = total;
+        document.getElementById('activeEventsCount').textContent = active;
+        document.getElementById('upcomingEventsCount').textContent = upcoming;
+        document.getElementById('pastEventsCount').textContent = past;
+    }
+
+    function filterEvents() {
+        currentFilters.status = document.getElementById('statusFilter').value;
+        currentFilters.type = document.getElementById('typeFilter').value;
+        currentFilters.search = document.getElementById('searchInput').value.toLowerCase();
+        
+        renderEvents();
+    }
+
+    function getFilteredEvents() {
+        return eventsData.filter(event => {
+            if (currentFilters.status !== 'all' && event.status !== currentFilters.status) return false;
+            if (currentFilters.type !== 'all' && event.event_type !== currentFilters.type) return false;
+            if (currentFilters.search && !event.name.toLowerCase().includes(currentFilters.search) && 
+                !event.venue.toLowerCase().includes(currentFilters.search)) return false;
+            return true;
+        });
+    }
+
+    function renderEvents() {
+        const filteredEvents = getFilteredEvents();
+        
+        if (currentView === 'grid') {
+            renderGridView(filteredEvents);
+        } else {
+            renderTableView(filteredEvents);
+        }
+    }
+
+    function renderGridView(events) {
+        const container = document.getElementById('eventsGridView');
+        
+        if (events.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-calendar-times"></i>
+                    <h3>No Events Found</h3>
+                    <p>Try adjusting your filters or create a new event</p>
+                    <button class="btn-glass" onclick="openModal('createEventModal')">
+                        <i class="fas fa-plus"></i> Create Event
+                    </button>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = events.map(event => `
+            <div class="event-grid-card" onclick="viewEventDetails(${event.id})">
+                <div class="event-card-header">
+                    <span class="event-status-badge status-${event.status}">
+                        <i class="fas fa-circle"></i>
+                        <span>${event.status}</span>
+                    </span>
+                    <h3>${escapeHtml(event.name)}</h3>
+                    <div class="event-date-large">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>${formatDate(event.event_date)}</span>
+                    </div>
+                </div>
+                <div class="event-card-body">
+                    <div class="event-description">
+                        ${escapeHtml(event.description || 'No description provided')}
+                    </div>
+                    <div class="event-meta-grid">
+                        <div class="event-meta-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>${escapeHtml(event.venue)}</span>
+                        </div>
+                        <div class="event-meta-item">
+                            <i class="fas fa-tag"></i>
+                            <span>${event.event_type}</span>
+                        </div>
+                        <div class="event-meta-item">
+                            <i class="fas fa-users"></i>
+                            <span>${event.teams_count || 0} / ${event.max_teams || '∞'} Teams</span>
+                        </div>
+                        <div class="event-meta-item">
+                            <i class="fas fa-clock"></i>
+                            <span>${getTimeRemaining(event.event_date)}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="event-card-footer">
+                    <button class="action-btn" onclick="event.stopPropagation(); editEvent(${event.id})">
+                        <i class="fas fa-edit"></i> Edit
+                    </button>
+                    <button class="action-btn" onclick="event.stopPropagation(); openDeleteModal(${event.id}, '${escapeHtml(event.name)}')">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                    <button class="action-btn" onclick="event.stopPropagation(); window.location.href='/admin/events/${event.id}/teams'">
+                        <i class="fas fa-users"></i> Teams
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function renderTableView(events) {
+        const container = document.getElementById('eventsTableView');
+        
+        if (events.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-calendar-times"></i>
+                    <h3>No Events Found</h3>
+                    <p>Try adjusting your filters or create a new event</p>
+                    <button class="btn-glass" onclick="openModal('createEventModal')">
+                        <i class="fas fa-plus"></i> Create Event
+                    </button>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = `
+            <table class="events-table">
+                <thead>
+                    <tr>
+                        <th>Event Name</th>
+                        <th>Date</th>
+                        <th>Venue</th>
+                        <th>Type</th>
+                        <th>Teams</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${events.map(event => `
+                        <tr>
+                            <td><strong>${escapeHtml(event.name)}</strong></td>
+                            <td>${formatDate(event.event_date)}</td>
+                            <td><i class="fas fa-map-marker-alt"></i> ${escapeHtml(event.venue)}</td>
+                            <td>${event.event_type}</td>
+                            <td>${event.teams_count || 0} / ${event.max_teams || '∞'}</td>
+                            <td>
+                                <span class="event-status-badge status-${event.status}">
+                                    <i class="fas fa-circle"></i>
+                                    <span>${event.status}</span>
+                                </span>
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="action-btn" onclick="editEvent(${event.id})" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="action-btn" onclick="openDeleteModal(${event.id}, '${escapeHtml(event.name)}')" title="Delete">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                    <button class="action-btn" onclick="window.location.href='/admin/events/${event.id}/teams'" title="View Teams">
+                                        <i class="fas fa-users"></i>
+                                    </button>
+                                    <button class="action-btn" onclick="viewEventDetails(${event.id})" title="Details">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
+    }
+
+    function setView(view) {
+        currentView = view;
+        const gridView = document.getElementById('eventsGridView');
+        const tableView = document.getElementById('eventsTableView');
+        const gridBtn = document.getElementById('gridViewBtn');
+        const tableBtn = document.getElementById('tableViewBtn');
+        
+        if (view === 'grid') {
+            gridView.classList.add('active');
+            tableView.classList.remove('active');
+            gridBtn.classList.add('active');
+            tableBtn.classList.remove('active');
+        } else {
+            gridView.classList.remove('active');
+            tableView.classList.add('active');
+            gridBtn.classList.remove('active');
+            tableBtn.classList.add('active');
+        }
+        
+        renderEvents();
+    }
+
+    function openModal(modalId) {
+        if (modalId === 'createEventModal') {
+            document.getElementById('modalTitle').innerHTML = '<i class="fas fa-calendar-plus"></i><span>Create New Event</span>';
+            document.getElementById('eventForm').reset();
+            document.getElementById('eventId').value = '';
+            document.getElementById('eventModal').classList.add('active');
+        }
+    }
+
+    function closeModal(modalId) {
+        document.getElementById(modalId).classList.remove('active');
+    }
+
+    function editEvent(eventId) {
+        const event = eventsData.find(e => e.id === eventId);
+        if (event) {
+            document.getElementById('modalTitle').innerHTML = '<i class="fas fa-edit"></i><span>Edit Event</span>';
+            document.getElementById('eventId').value = event.id;
+            document.getElementById('eventName').value = event.name;
+            document.getElementById('eventDescription').value = event.description || '';
+            document.getElementById('eventDate').value = event.event_date.substring(0, 16);
+            document.getElementById('eventType').value = event.event_type;
+            document.getElementById('eventVenue').value = event.venue;
+            document.getElementById('maxTeams').value = event.max_teams || '';
+            document.getElementById('eventStatus').value = event.status;
+            document.getElementById('eventModal').classList.add('active');
+        }
+    }
+
+    function openDeleteModal(eventId, eventName) {
+        deleteEventId = eventId;
+        document.getElementById('deleteEventName').textContent = `"${eventName}"`;
+        document.getElementById('deleteModal').classList.add('active');
+    }
+
+    function confirmDelete() {
+        if (deleteEventId) {
+            // API call to delete event
+            eventsData = eventsData.filter(e => e.id !== deleteEventId);
+            updateStats();
+            renderEvents();
+            closeModal('deleteModal');
+            showNotification('Event deleted successfully', 'success');
+            deleteEventId = null;
+        }
+    }
+
+    function viewEventDetails(eventId) {
+        showNotification(`Viewing details for event ID: ${eventId}`, 'info');
+    }
+
+    function exportEvents() {
+        const filteredEvents = getFilteredEvents();
+        const dataStr = JSON.stringify(filteredEvents, null, 2);
+        const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+        const exportFileDefaultName = `events_export_${new Date().toISOString().slice(0,19)}.json`;
+        const linkElement = document.createElement('a');
+        linkElement.setAttribute('href', dataUri);
+        linkElement.setAttribute('download', exportFileDefaultName);
+        linkElement.click();
+        showNotification('Events exported successfully', 'success');
+    }
+
+    function formatDate(dateString) {
+        if (!dateString) return 'TBD';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    }
+
+    function getTimeRemaining(dateString) {
+        const eventDate = new Date(dateString);
+        const now = new Date();
+        const diff = eventDate - now;
+        
+        if (diff < 0) return 'Event ended';
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        if (days > 0) return `${days} days left`;
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        if (hours > 0) return `${hours} hours left`;
+        const minutes = Math.floor(diff / (1000 * 60));
+        return `${minutes} minutes left`;
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    function showNotification(message, type) {
+        const flashContainer = document.querySelector('.flash-container');
+        if (flashContainer) {
+            const notification = document.createElement('div');
+            notification.className = `flash-message flash-${type}`;
+            notification.innerHTML = `
+                <div class="flash-icon">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : 'info-circle'}"></i>
+                </div>
+                <div class="flash-content">
+                    <span>${message}</span>
+                </div>
+                <button class="flash-close">&times;</button>
+                <div class="flash-progress"></div>
+            `;
+            flashContainer.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.5s ease forwards';
+                setTimeout(() => notification.remove(), 500);
+            }, 5000);
+            
+            notification.querySelector('.flash-close').addEventListener('click', () => {
+                notification.style.animation = 'slideOut 0.3s ease forwards';
+                setTimeout(() => notification.remove(), 300);
+            });
+        }
+    }
+
+    // Form submission
+    document.getElementById('eventForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const eventId = document.getElementById('eventId').value;
+        const formData = {
+            name: document.getElementById('eventName').value,
+            description: document.getElementById('eventDescription').value,
+            event_date: document.getElementById('eventDate').value,
+            event_type: document.getElementById('eventType').value,
+            venue: document.getElementById('eventVenue').value,
+            max_teams: document.getElementById('maxTeams').value || null,
+            status: document.getElementById('eventStatus').value
+        };
+        
+        if (eventId) {
+            // Update existing event
+            const index = eventsData.findIndex(e => e.id === parseInt(eventId));
+            if (index !== -1) {
+                eventsData[index] = { ...eventsData[index], ...formData, id: parseInt(eventId) };
+                showNotification('Event updated successfully', 'success');
+            }
+        } else {
+            // Create new event
+            const newEvent = {
+                id: Math.max(...eventsData.map(e => e.id), 0) + 1,
+                ...formData,
+                teams_count: 0
+            };
+            eventsData.push(newEvent);
+            showNotification('Event created successfully', 'success');
+        }
+        
+        updateStats();
+        renderEvents();
+        closeModal('eventModal');
+    });
+
+    // Initialize
+    fetchEvents();
+</script>
+{% endblock %}

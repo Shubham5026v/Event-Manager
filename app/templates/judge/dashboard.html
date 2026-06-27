@@ -1,0 +1,1053 @@
+{% extends "base.html" %}
+
+{% block title %}Judge Dashboard - EventX Neural Judging{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Judge Dashboard Specific Styles */
+    .judge-container {
+        padding: 2rem;
+        max-width: 1600px;
+        margin: 0 auto;
+    }
+
+    /* Welcome Section */
+    .welcome-section {
+        margin-bottom: 2rem;
+        padding: 2rem;
+        background: linear-gradient(135deg, rgba(43, 110, 255, 0.1), rgba(155, 77, 255, 0.1));
+        border-radius: 2rem;
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .welcome-section::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(0, 255, 255, 0.1), transparent);
+        animation: rotate 20s linear infinite;
+    }
+
+    @keyframes rotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    .welcome-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .welcome-title {
+        font-size: 2rem;
+        font-weight: 800;
+        font-family: 'Orbitron', monospace;
+        margin-bottom: 0.5rem;
+    }
+
+    .welcome-title .gradient-text {
+        background: linear-gradient(135deg, #00ffff, #6b2eff);
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+    }
+
+    .judge-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(0, 255, 255, 0.1);
+        padding: 0.3rem 1rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        margin-top: 0.5rem;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: rgba(8, 18, 34, 0.6);
+        backdrop-filter: blur(12px);
+        border-radius: 1.5rem;
+        padding: 1.5rem;
+        border: 1px solid rgba(0, 255, 255, 0.2);
+        transition: all 0.3s;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        border-color: rgba(0, 255, 255, 0.5);
+    }
+
+    .stat-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, #2b6eff, #9b4dff);
+        border-radius: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 800;
+        font-family: 'Orbitron', monospace;
+        margin-bottom: 0.3rem;
+    }
+
+    .stat-label {
+        color: #99aaff;
+        font-size: 0.85rem;
+    }
+
+    /* Event Selector */
+    .event-selector {
+        background: rgba(8, 18, 34, 0.6);
+        backdrop-filter: blur(12px);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        border: 1px solid rgba(0, 255, 255, 0.2);
+    }
+
+    .selector-title {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+        color: #00ffff;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .event-select {
+        width: 100%;
+        padding: 0.8rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        border-radius: 12px;
+        color: white;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .event-select:focus {
+        outline: none;
+        border-color: #00ffff;
+        box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
+    }
+
+    /* Scoring Interface */
+    .scoring-interface {
+        display: none;
+    }
+
+    .scoring-interface.active {
+        display: block;
+    }
+
+    .criteria-section {
+        background: rgba(8, 18, 34, 0.6);
+        backdrop-filter: blur(12px);
+        border-radius: 1.5rem;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        border: 1px solid rgba(0, 255, 255, 0.2);
+    }
+
+    .criteria-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .criteria-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .total-score {
+        font-size: 1.5rem;
+        font-family: 'Orbitron', monospace;
+        color: #00ffff;
+    }
+
+    .criteria-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .criteria-card {
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 1rem;
+        padding: 1rem;
+        border: 1px solid rgba(0, 255, 255, 0.2);
+    }
+
+    .criteria-name {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .criteria-weight {
+        color: #00ffff;
+        font-size: 0.8rem;
+    }
+
+    .score-slider {
+        width: 100%;
+        margin: 0.5rem 0;
+    }
+
+    input[type="range"] {
+        width: 100%;
+        height: 4px;
+        -webkit-appearance: none;
+        background: rgba(0, 255, 255, 0.2);
+        border-radius: 5px;
+        outline: none;
+    }
+
+    input[type="range"]:focus {
+        outline: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: #00ffff;
+        cursor: pointer;
+        box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+    }
+
+    .criteria-score {
+        text-align: right;
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: #00ffff;
+    }
+
+    /* Teams Grid */
+    .teams-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .team-judge-card {
+        background: rgba(8, 18, 34, 0.6);
+        backdrop-filter: blur(12px);
+        border-radius: 1.5rem;
+        border: 1px solid rgba(0, 255, 255, 0.2);
+        overflow: hidden;
+        transition: all 0.3s;
+        cursor: pointer;
+    }
+
+    .team-judge-card:hover {
+        transform: translateY(-5px);
+        border-color: #00ffff;
+        box-shadow: 0 10px 30px rgba(0, 255, 255, 0.1);
+    }
+
+    .team-judge-card.selected {
+        border-color: #00ffff;
+        box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+    }
+
+    .team-card-header {
+        padding: 1.2rem 1.5rem;
+        background: linear-gradient(135deg, rgba(43, 110, 255, 0.1), rgba(155, 77, 255, 0.1));
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+    }
+
+    .team-rank {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        background: rgba(0, 255, 255, 0.2);
+        color: #00ffff;
+    }
+
+    .team-name {
+        font-size: 1.1rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .team-card-body {
+        padding: 1.5rem;
+    }
+
+    .team-score-preview {
+        text-align: center;
+        margin-bottom: 1rem;
+    }
+
+    .team-score-value {
+        font-size: 2rem;
+        font-weight: 800;
+        font-family: 'Orbitron', monospace;
+        background: linear-gradient(135deg, #fff, #00ffff);
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+    }
+
+    .score-status {
+        display: inline-block;
+        margin-top: 0.3rem;
+        font-size: 0.7rem;
+        padding: 0.2rem 0.6rem;
+        border-radius: 20px;
+    }
+
+    .status-scored {
+        background: rgba(0, 255, 136, 0.2);
+        color: #00ff88;
+    }
+
+    .status-pending {
+        background: rgba(255, 170, 51, 0.2);
+        color: #ffaa33;
+    }
+
+    .team-meta {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.8rem;
+        color: #99aaff;
+        margin-top: 0.5rem;
+        padding-top: 0.5rem;
+        border-top: 1px solid rgba(0, 255, 255, 0.1);
+    }
+
+    /* Scoring Panel */
+    .scoring-panel {
+        background: rgba(8, 18, 34, 0.8);
+        backdrop-filter: blur(20px);
+        border-radius: 1.5rem;
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        width: 450px;
+        max-width: calc(100% - 2rem);
+        z-index: 1000;
+        transform: translateX(120%);
+        transition: transform 0.3s ease;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .scoring-panel.active {
+        transform: translateX(0);
+    }
+
+    .scoring-panel-header {
+        padding: 1rem 1.5rem;
+        background: linear-gradient(135deg, rgba(43, 110, 255, 0.2), rgba(155, 77, 255, 0.2));
+        border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .scoring-panel-title {
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .close-panel {
+        background: none;
+        border: none;
+        color: #fff;
+        font-size: 1.2rem;
+        cursor: pointer;
+    }
+
+    .scoring-panel-body {
+        padding: 1.5rem;
+        max-height: 500px;
+        overflow-y: auto;
+    }
+
+    .scoring-panel-footer {
+        padding: 1rem 1.5rem;
+        border-top: 1px solid rgba(0, 255, 255, 0.2);
+        display: flex;
+        gap: 1rem;
+    }
+
+    /* Comments Section */
+    .comments-section {
+        margin-top: 1rem;
+    }
+
+    .comments-section textarea {
+        width: 100%;
+        padding: 0.8rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        border-radius: 12px;
+        color: white;
+        font-family: inherit;
+        resize: vertical;
+    }
+
+    /* Leaderboard Preview */
+    .leaderboard-preview {
+        background: rgba(8, 18, 34, 0.6);
+        backdrop-filter: blur(12px);
+        border-radius: 1.5rem;
+        padding: 1.5rem;
+        border: 1px solid rgba(0, 255, 255, 0.2);
+        margin-top: 2rem;
+    }
+
+    .leaderboard-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .leaderboard-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .leaderboard-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.5rem;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 0.5rem;
+    }
+
+    .leaderboard-rank {
+        width: 40px;
+        text-align: center;
+        font-weight: bold;
+    }
+
+    .leaderboard-rank.rank-1 { color: #ffaa33; }
+    .leaderboard-rank.rank-2 { color: #c0c0c0; }
+    .leaderboard-rank.rank-3 { color: #cd7f32; }
+
+    .leaderboard-name {
+        flex: 1;
+    }
+
+    .leaderboard-score {
+        font-family: 'Orbitron', monospace;
+        font-weight: bold;
+        color: #00ffff;
+    }
+
+    /* Submit Button */
+    .btn-submit {
+        flex: 1;
+        padding: 0.8rem;
+        background: linear-gradient(135deg, #00ff88, #00cc66);
+        border: none;
+        border-radius: 40px;
+        color: #000;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .btn-submit:hover {
+        transform: scale(1.02);
+        box-shadow: 0 5px 20px rgba(0, 255, 136, 0.3);
+    }
+
+    .btn-save {
+        flex: 1;
+        padding: 0.8rem;
+        background: rgba(0, 255, 255, 0.1);
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        border-radius: 40px;
+        color: white;
+        cursor: pointer;
+    }
+
+    /* Loading State */
+    .loading-spinner {
+        text-align: center;
+        padding: 3rem;
+    }
+
+    .loading-spinner i {
+        font-size: 2rem;
+        color: #00ffff;
+    }
+
+    @media (max-width: 768px) {
+        .judge-container {
+            padding: 1rem;
+        }
+        
+        .teams-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .scoring-panel {
+            width: calc(100% - 2rem);
+            left: 1rem;
+            right: 1rem;
+            bottom: 1rem;
+        }
+        
+        .criteria-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="judge-container">
+    <!-- Welcome Section -->
+    <div class="welcome-section" data-aos="fade-up">
+        <div class="welcome-content">
+            <h1 class="welcome-title">
+                Welcome, <span class="gradient-text">{{ current_user.username }}</span>
+            </h1>
+            <div class="judge-badge">
+                <i class="fas fa-gavel"></i>
+                <span>Official Judge Panel</span>
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <p style="margin-top: 1rem; color: #99aaff;">
+                Evaluate teams, assign scores, and provide feedback. Your ratings matter!
+            </p>
+        </div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid" data-aos="fade-up" data-aos-delay="50">
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-icon">
+                    <i class="fas fa-calendar-alt"></i>
+                </div>
+            </div>
+            <div class="stat-value" id="assignedEvents">0</div>
+            <div class="stat-label">Assigned Events</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+            </div>
+            <div class="stat-value" id="teamsToJudge">0</div>
+            <div class="stat-label">Teams to Judge</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+            </div>
+            <div class="stat-value" id="teamsJudged">0</div>
+            <div class="stat-label">Teams Judged</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+            </div>
+            <div class="stat-value" id="completionRate">0%</div>
+            <div class="stat-label">Completion Rate</div>
+        </div>
+    </div>
+
+    <!-- Event Selector -->
+    <div class="event-selector" data-aos="fade-up" data-aos-delay="100">
+        <div class="selector-title">
+            <i class="fas fa-calendar-alt"></i>
+            <span>Select Event to Judge</span>
+        </div>
+        <select id="eventSelect" class="event-select" onchange="loadEventTeams()">
+            <option value="">-- Choose an event --</option>
+        </select>
+    </div>
+
+    <!-- Scoring Interface -->
+    <div id="scoringInterface" class="scoring-interface">
+        <!-- Teams Grid -->
+        <div id="teamsGrid" class="teams-grid" data-aos="fade-up" data-aos-delay="150"></div>
+
+        <!-- Leaderboard Preview -->
+        <div class="leaderboard-preview" data-aos="fade-up" data-aos-delay="200">
+            <div class="leaderboard-title">
+                <i class="fas fa-trophy"></i>
+                <span>Live Leaderboard</span>
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <div id="leaderboardList" class="leaderboard-list">
+                <div class="loading-spinner">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <span>Loading leaderboard...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scoring Panel -->
+<div id="scoringPanel" class="scoring-panel">
+    <div class="scoring-panel-header">
+        <div class="scoring-panel-title">
+            <i class="fas fa-star"></i>
+            <span id="scoringPanelTeamName">Score Team</span>
+        </div>
+        <button class="close-panel" onclick="closeScoringPanel()">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    <div class="scoring-panel-body">
+        <div id="criteriaContainer"></div>
+        <div class="comments-section">
+            <label style="display: block; margin-bottom: 0.5rem; color: #00ffff;">Judge's Comments</label>
+            <textarea id="judgeComments" rows="3" placeholder="Provide feedback for the team..."></textarea>
+        </div>
+    </div>
+    <div class="scoring-panel-footer">
+        <button class="btn-save" onclick="saveDraft()">
+            <i class="fas fa-save"></i> Save Draft
+        </button>
+        <button class="btn-submit" onclick="submitScores()">
+            <i class="fas fa-check-circle"></i> Submit Scores
+        </button>
+    </div>
+</div>
+
+<script>
+    let currentEvent = null;
+    let currentTeams = [];
+    let currentScores = {};
+    let selectedTeam = null;
+    let criteriaConfig = {
+        'innovation': { name: 'Innovation & Creativity', weight: 25, max: 100 },
+        'technical': { name: 'Technical Implementation', weight: 30, max: 100 },
+        'presentation': { name: 'Presentation & Communication', weight: 20, max: 100 },
+        'impact': { name: 'Impact & Scalability', weight: 25, max: 100 }
+    };
+
+    // Load events assigned to judge
+    async function loadEvents() {
+        try {
+            const response = await fetch('/api/judge/events');
+            const data = await response.json();
+            const events = data.events || getDemoJudgeEvents();
+            const eventSelect = document.getElementById('eventSelect');
+            
+            eventSelect.innerHTML = '<option value="">-- Choose an event --</option>' + 
+                events.map(event => `<option value="${event.id}">${escapeHtml(event.name)} (${event.status})</option>`).join('');
+            
+            updateStats(events);
+        } catch (error) {
+            console.error('Error loading events:', error);
+            loadDemoJudgeEvents();
+        }
+    }
+
+    function getDemoJudgeEvents() {
+        return [
+            { id: 1, name: 'AI Hackathon 2026', status: 'active', teamsCount: 8, judgedCount: 3 },
+            { id: 2, name: 'Robotics Challenge', status: 'active', teamsCount: 6, judgedCount: 2 }
+        ];
+    }
+
+    function loadDemoJudgeEvents() {
+        const events = getDemoJudgeEvents();
+        const eventSelect = document.getElementById('eventSelect');
+        eventSelect.innerHTML = '<option value="">-- Choose an event --</option>' + 
+            events.map(event => `<option value="${event.id}">${escapeHtml(event.name)} (${event.status})</option>`).join('');
+        updateStats(events);
+    }
+
+    function updateStats(events) {
+        const assignedEvents = events.length;
+        const totalTeams = events.reduce((sum, e) => sum + (e.teamsCount || 0), 0);
+        const judgedTeams = events.reduce((sum, e) => sum + (e.judgedCount || 0), 0);
+        const completionRate = totalTeams > 0 ? Math.round((judgedTeams / totalTeams) * 100) : 0;
+        
+        document.getElementById('assignedEvents').textContent = assignedEvents;
+        document.getElementById('teamsToJudge').textContent = totalTeams - judgedTeams;
+        document.getElementById('teamsJudged').textContent = judgedTeams;
+        document.getElementById('completionRate').textContent = completionRate;
+    }
+
+    // Load event teams
+    async function loadEventTeams() {
+        const eventId = document.getElementById('eventSelect').value;
+        if (!eventId) {
+            document.getElementById('scoringInterface').classList.remove('active');
+            return;
+        }
+
+        showLoading();
+        
+        try {
+            const response = await fetch(`/api/judge/events/${eventId}/teams`);
+            const data = await response.json();
+            currentEvent = { id: eventId, name: data.event_name || 'Selected Event' };
+            currentTeams = data.teams || getDemoJudgeTeams();
+            currentScores = data.scores || {};
+            
+            renderTeams();
+            renderLeaderboard();
+            document.getElementById('scoringInterface').classList.add('active');
+        } catch (error) {
+            console.error('Error loading teams:', error);
+            currentTeams = getDemoJudgeTeams();
+            currentScores = {};
+            renderTeams();
+            renderLeaderboard();
+            document.getElementById('scoringInterface').classList.add('active');
+        }
+    }
+
+    function getDemoJudgeTeams() {
+        return [
+            { id: 1, name: 'Neural Ninjas', leader: 'Alex Chen', members: 4, scored: false, score: null },
+            { id: 2, name: 'Code Wizards', leader: 'Jessica Taylor', members: 4, scored: true, score: 85.5 },
+            { id: 3, name: 'Quantum Crew', leader: 'Daniel Park', members: 3, scored: false, score: null },
+            { id: 4, name: 'Data Demons', leader: 'Rachel Green', members: 4, scored: true, score: 72.0 }
+        ];
+    }
+
+    function renderTeams() {
+        const container = document.getElementById('teamsGrid');
+        
+        container.innerHTML = currentTeams.map(team => `
+            <div class="team-judge-card" onclick="openScoringPanel(${team.id})">
+                <div class="team-card-header">
+                    <div class="team-rank">
+                        <i class="fas fa-${team.scored ? 'check-circle' : 'clock'}"></i>
+                        <span>${team.scored ? 'Scored' : 'Pending'}</span>
+                    </div>
+                    <div class="team-name">
+                        <i class="fas fa-users"></i>
+                        <span>${escapeHtml(team.name)}</span>
+                    </div>
+                </div>
+                <div class="team-card-body">
+                    <div class="team-score-preview">
+                        <div class="team-score-value">
+                            ${team.scored ? team.score.toFixed(1) : '—'}
+                        </div>
+                        <div class="score-status ${team.scored ? 'status-scored' : 'status-pending'}">
+                            ${team.scored ? '✓ Scores Submitted' : '⚡ Ready for Judging'}
+                        </div>
+                    </div>
+                    <div class="team-meta">
+                        <span><i class="fas fa-user-tie"></i> ${escapeHtml(team.leader)}</span>
+                        <span><i class="fas fa-user-friends"></i> ${team.members + 1} Members</span>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function renderLeaderboard() {
+        const container = document.getElementById('leaderboardList');
+        const scoredTeams = currentTeams.filter(t => t.scored).sort((a, b) => b.score - a.score);
+        
+        if (scoredTeams.length === 0) {
+            container.innerHTML = `
+                <div style="text-align: center; padding: 2rem; color: #99aaff;">
+                    <i class="fas fa-chart-line"></i>
+                    <p>No scores submitted yet</p>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = scoredTeams.map((team, index) => `
+            <div class="leaderboard-item">
+                <div class="leaderboard-rank rank-${index === 0 ? '1' : index === 1 ? '2' : index === 2 ? '3' : ''}">
+                    ${index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`}
+                </div>
+                <div class="leaderboard-name">${escapeHtml(team.name)}</div>
+                <div class="leaderboard-score">${team.score.toFixed(1)}</div>
+            </div>
+        `).join('');
+    }
+
+    // Scoring Panel Functions
+    function openScoringPanel(teamId) {
+        const team = currentTeams.find(t => t.id === teamId);
+        if (!team) return;
+        
+        selectedTeam = team;
+        document.getElementById('scoringPanelTeamName').innerHTML = `<i class="fas fa-star"></i> ${escapeHtml(team.name)}`;
+        
+        // Load existing scores if any
+        const existingScores = currentScores[teamId] || {};
+        renderCriteria(existingScores);
+        document.getElementById('judgeComments').value = existingScores.comments || '';
+        
+        document.getElementById('scoringPanel').classList.add('active');
+    }
+
+    function renderCriteria(existingScores) {
+        const container = document.getElementById('criteriaContainer');
+        
+        container.innerHTML = Object.entries(criteriaConfig).map(([key, criteria]) => `
+            <div class="criteria-card">
+                <div class="criteria-name">
+                    <span>${criteria.name}</span>
+                    <span class="criteria-weight">Weight: ${criteria.weight}%</span>
+                </div>
+                <input type="range" class="score-slider" id="slider-${key}" 
+                    min="0" max="${criteria.max}" step="1" 
+                    value="${existingScores[key] || 0}"
+                    oninput="updateCriteriaScore('${key}', this.value)">
+                <div class="criteria-score">
+                    <span id="score-${key}">${existingScores[key] || 0}</span> / ${criteria.max}
+                </div>
+            </div>
+        `).join('');
+        
+        updateTotalScore();
+    }
+
+    function updateCriteriaScore(criteriaKey, value) {
+        document.getElementById(`score-${criteriaKey}`).textContent = value;
+        updateTotalScore();
+    }
+
+    function updateTotalScore() {
+        let totalWeightedScore = 0;
+        let totalWeight = 0;
+        
+        Object.entries(criteriaConfig).forEach(([key, criteria]) => {
+            const score = parseFloat(document.getElementById(`slider-${key}`).value) || 0;
+            const weightedScore = (score / criteria.max) * criteria.weight;
+            totalWeightedScore += weightedScore;
+            totalWeight += criteria.weight;
+        });
+        
+        const finalScore = totalWeight > 0 ? (totalWeightedScore / totalWeight) * 100 : 0;
+        
+        // Update total score display if exists
+        const totalDisplay = document.querySelector('.total-score');
+        if (totalDisplay) {
+            totalDisplay.textContent = finalScore.toFixed(1);
+        } else {
+            // Add total score display
+            const criteriaHeader = document.querySelector('.criteria-header');
+            if (criteriaHeader && !document.querySelector('.total-score')) {
+                const totalSpan = document.createElement('div');
+                totalSpan.className = 'total-score';
+                totalSpan.innerHTML = `<i class="fas fa-calculator"></i> Total: ${finalScore.toFixed(1)}`;
+                criteriaHeader.appendChild(totalSpan);
+            } else if (criteriaHeader) {
+                const existingTotal = criteriaHeader.querySelector('.total-score');
+                if (existingTotal) {
+                    existingTotal.innerHTML = `<i class="fas fa-calculator"></i> Total: ${finalScore.toFixed(1)}`;
+                }
+            }
+        }
+    }
+
+    function calculateTotalScore() {
+        let totalWeightedScore = 0;
+        let totalWeight = 0;
+        
+        Object.entries(criteriaConfig).forEach(([key, criteria]) => {
+            const score = parseFloat(document.getElementById(`slider-${key}`).value) || 0;
+            const weightedScore = (score / criteria.max) * criteria.weight;
+            totalWeightedScore += weightedScore;
+            totalWeight += criteria.weight;
+        });
+        
+        return totalWeight > 0 ? (totalWeightedScore / totalWeight) * 100 : 0;
+    }
+
+    function getCurrentScores() {
+        const scores = {};
+        Object.keys(criteriaConfig).forEach(key => {
+            scores[key] = parseFloat(document.getElementById(`slider-${key}`).value) || 0;
+        });
+        scores.comments = document.getElementById('judgeComments').value;
+        scores.total = calculateTotalScore();
+        return scores;
+    }
+
+    function saveDraft() {
+        if (!selectedTeam) return;
+        
+        const scores = getCurrentScores();
+        currentScores[selectedTeam.id] = scores;
+        
+        showNotification(`Draft saved for ${selectedTeam.name}`, 'success');
+    }
+
+    async function submitScores() {
+        if (!selectedTeam) return;
+        
+        const scores = getCurrentScores();
+        const totalScore = scores.total;
+        
+        if (totalScore === 0) {
+            showNotification('Please assign scores before submitting', 'warning');
+            return;
+        }
+        
+        try {
+            const response = await fetch('/api/judge/submit-scores', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    eventId: currentEvent.id,
+                    teamId: selectedTeam.id,
+                    scores: scores,
+                    total: totalScore
+                })
+            });
+            
+            if (response.ok) {
+                // Update team status
+                const teamIndex = currentTeams.findIndex(t => t.id === selectedTeam.id);
+                if (teamIndex !== -1) {
+                    currentTeams[teamIndex].scored = true;
+                    currentTeams[teamIndex].score = totalScore;
+                }
+                
+                currentScores[selectedTeam.id] = scores;
+                
+                renderTeams();
+                renderLeaderboard();
+                closeScoringPanel();
+                showNotification(`Scores submitted for ${selectedTeam.name}`, 'success');
+                
+                // Update stats
+                const judgedCount = currentTeams.filter(t => t.scored).length;
+                const totalTeams = currentTeams.length;
+                const completionRate = Math.round((judgedCount / totalTeams) * 100);
+                document.getElementById('teamsJudged').textContent = judgedCount;
+                document.getElementById('teamsToJudge').textContent = totalTeams - judgedCount;
+                document.getElementById('completionRate').textContent = completionRate;
+            } else {
+                showNotification('Failed to submit scores', 'error');
+            }
+        } catch (error) {
+            console.error('Error submitting scores:', error);
+            showNotification('Network error. Please try again.', 'error');
+        }
+    }
+
+    function closeScoringPanel() {
+        document.getElementById('scoringPanel').classList.remove('active');
+        selectedTeam = null;
+    }
+
+    function showLoading() {
+        document.getElementById('teamsGrid').innerHTML = `
+            <div class="loading-spinner" style="grid-column: 1/-1;">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Loading teams...</p>
+            </div>
+        `;
+    }
+
+    function showNotification(message, type) {
+        const flashContainer = document.querySelector('.flash-container');
+        if (flashContainer) {
+            const notification = document.createElement('div');
+            notification.className = `flash-message flash-${type}`;
+            notification.innerHTML = `
+                <div class="flash-icon">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'}"></i>
+                </div>
+                <div class="flash-content">
+                    <span>${message}</span>
+                </div>
+                <button class="flash-close">&times;</button>
+                <div class="flash-progress"></div>
+            `;
+            flashContainer.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.5s ease forwards';
+                setTimeout(() => notification.remove(), 500);
+            }, 5000);
+            
+            notification.querySelector('.flash-close').addEventListener('click', () => {
+                notification.style.animation = 'slideOut 0.3s ease forwards';
+                setTimeout(() => notification.remove(), 300);
+            });
+        }
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    // Initialize
+    loadEvents();
+</script>
+{% endblock %}

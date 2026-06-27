@@ -1,0 +1,783 @@
+{% extends "base.html" %}
+
+{% block title %}EventX - Futuristic Event Management Platform{% endblock %}
+
+{% block extra_css %}
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at 20% 30%, #0a0f1e, #03060c);
+            color: #f0f3ff;
+            line-height: 1.5;
+            overflow-x: hidden;
+        }
+
+        /* animated grain / noise overlay */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='1' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.4;
+        }
+
+        /* animated glowing orb backgrounds */
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.25;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .orb1 {
+            width: 50vw;
+            height: 50vw;
+            background: #6b2eff;
+            top: -20vh;
+            right: -20vw;
+            animation: floatOrb 18s infinite alternate ease-in-out;
+        }
+
+        .orb2 {
+            width: 40vw;
+            height: 40vw;
+            background: #00c3ff;
+            bottom: -10vh;
+            left: -15vw;
+            animation: floatOrb2 22s infinite alternate ease-in-out;
+        }
+
+        .orb3 {
+            width: 30vw;
+            height: 30vw;
+            background: #ff3d7f;
+            bottom: 30vh;
+            right: 30vw;
+            filter: blur(100px);
+            opacity: 0.2;
+            animation: floatOrb3 25s infinite alternate;
+        }
+
+        @keyframes floatOrb {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(5%, 8%) scale(1.1); }
+        }
+        @keyframes floatOrb2 {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(-4%, -6%) scale(1.2); }
+        }
+        @keyframes floatOrb3 {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            100% { transform: translate(3%, -4%) rotate(5deg); }
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* glass morphism base */
+        .glass-card, .hero-stats .stat-card, .feature-card, .cta-content {
+            background: rgba(12, 20, 35, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 2rem;
+            border: 1px solid rgba(72, 187, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            transition: all 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+        }
+
+        .glass-card:hover {
+            border-color: rgba(0, 212, 255, 0.5);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255,255,255,0.1);
+            transform: translateY(-4px);
+        }
+
+        /* hero section */
+        .hero-section {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+            padding: 6rem 1.5rem;
+        }
+
+        .hero-content {
+            max-width: 900px;
+            margin: 0 auto;
+            z-index: 3;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(0, 212, 255, 0.12);
+            backdrop-filter: blur(8px);
+            border-radius: 100px;
+            padding: 0.5rem 1.2rem;
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            letter-spacing: 0.3px;
+        }
+
+        .hero-badge i {
+            color: #0af;
+            font-size: 1rem;
+        }
+
+        .hero-title {
+            font-size: 4.2rem;
+            font-weight: 800;
+            line-height: 1.2;
+            background: linear-gradient(135deg, #ffffff 0%, #b3e0ff 50%, #ffffff 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        .gradient-text {
+            background: linear-gradient(120deg, #00c6ff, #8e2de2);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            position: relative;
+            display: inline-block;
+        }
+
+        .hero-description {
+            font-size: 1.25rem;
+            color: #cbd5ff;
+            max-width: 650px;
+            margin: 0 auto 2rem auto;
+            opacity: 0.9;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 4rem;
+        }
+
+        .btn-primary, .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.7rem;
+            padding: 0.9rem 2rem;
+            border-radius: 2rem;
+            font-weight: 600;
+            transition: all 0.25s ease;
+            text-decoration: none;
+            font-size: 1rem;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .btn-primary {
+            background: linear-gradient(105deg, #2b3bff, #9b4dff);
+            color: white;
+            box-shadow: 0 4px 15px rgba(43, 59, 255, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: scale(1.03);
+            box-shadow: 0 10px 25px rgba(43, 59, 255, 0.5);
+            border-color: rgba(255,255,255,0.5);
+        }
+
+        .btn-secondary {
+            background: rgba(20, 30, 55, 0.6);
+            color: #eef5ff;
+            border: 1px solid rgba(0, 180, 255, 0.5);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(30, 45, 80, 0.8);
+            transform: scale(1.02);
+            border-color: #0af;
+        }
+
+        .hero-stats {
+            display: flex;
+            justify-content: center;
+            gap: 2.5rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .stat-card {
+            padding: 1.2rem 2rem;
+            min-width: 140px;
+            backdrop-filter: blur(16px);
+            background: rgba(8, 16, 32, 0.45);
+            border-radius: 2rem;
+        }
+
+        .stat-number {
+            font-size: 2.6rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff, #88ddff);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            font-weight: 500;
+            color: #9ab3f0;
+        }
+
+        /* features section */
+        .features-section {
+            padding: 6rem 0;
+            position: relative;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .section-header h2 {
+            font-size: 2.8rem;
+            font-weight: 700;
+            margin-bottom: 0.8rem;
+        }
+
+        .section-header p {
+            color: #a5bbff;
+            font-size: 1.1rem;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            padding: 2rem 1.5rem;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .feature-icon {
+            font-size: 2.8rem;
+            background: linear-gradient(145deg, #2b6eff, #a855f7);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            margin-bottom: 1.2rem;
+        }
+
+        .feature-card h3 {
+            font-size: 1.6rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .feature-card p {
+            color: #cbd5f0;
+        }
+
+        /* events preview */
+        .events-preview-section {
+            padding: 4rem 0 6rem;
+        }
+
+        .events-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .event-card {
+            padding: 1.5rem;
+            border-radius: 1.8rem;
+            background: rgba(8, 18, 34, 0.5);
+            backdrop-filter: blur(12px);
+            transition: transform 0.25s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .event-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at top right, rgba(0,212,255,0.15), transparent);
+            pointer-events: none;
+        }
+
+        .event-date {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            background: rgba(0, 160, 255, 0.2);
+            border-radius: 1.2rem;
+            padding: 0.3rem 1rem;
+            margin-bottom: 1rem;
+            width: fit-content;
+            border-left: 3px solid #0af;
+        }
+
+        .event-date .day {
+            font-size: 1.6rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .event-date .month {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .event-card h3 {
+            font-size: 1.6rem;
+            margin-bottom: 0.6rem;
+        }
+
+        .event-card p {
+            color: #bcc9f0;
+            margin-bottom: 1rem;
+        }
+
+        .event-meta {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.85rem;
+            margin: 1rem 0;
+            color: #9cb2ff;
+        }
+
+        .event-meta i {
+            margin-right: 0.3rem;
+        }
+
+        .event-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.25rem 1rem;
+            border-radius: 100px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: capitalize;
+            background: rgba(0,0,0,0.4);
+            width: fit-content;
+        }
+
+        .status-upcoming i, .status-active i {
+            color: #0f6;
+        }
+        .status-past i {
+            color: #aaa;
+        }
+
+        /* loading & error */
+        .loading-spinner, .no-events, .error-message {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 3rem;
+            background: rgba(0,0,0,0.3);
+            border-radius: 2rem;
+            backdrop-filter: blur(8px);
+        }
+
+        .loading-spinner i, .error-message i {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        /* CTA */
+        .cta-section {
+            padding: 4rem 0 7rem;
+        }
+
+        .cta-content {
+            text-align: center;
+            padding: 3rem;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .cta-content h2 {
+            font-size: 2.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .cta-content p {
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+            opacity: 0.8;
+        }
+
+        /* scroll animations */
+        .feature-card, .event-card, .stat-card {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease, transform 0.5s ease;
+        }
+
+        .feature-card.visible, .event-card.visible, .stat-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* responsive */
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.6rem;
+            }
+            .container {
+                padding: 0 1.2rem;
+            }
+            .hero-stats {
+                gap: 1rem;
+            }
+            .stat-card {
+                padding: 0.8rem 1rem;
+                min-width: 100px;
+            }
+            .stat-number {
+                font-size: 1.8rem;
+            }
+            .features-grid {
+                gap: 1.2rem;
+            }
+        }
+
+    </style>
+{% endblock %}
+
+{% block content %}
+            </div>
+                <div style="height: 60px;"></div>
+            <p class="hero-description">
+                Experience the future of event management with real-time scoring, 
+                AI-powered analytics, and immersive digital experiences.
+            </p>
+            <div class="hero-buttons">
+                <!-- Jinja2 conditions: do not break, use same function names -->
+                {% if not current_user.is_authenticated %}
+                    <a href="{{ url_for('auth.login') }}" class="btn-primary">
+                        <i class="fas fa-rocket"></i>
+                        <span>Get Started</span>
+                    </a>
+                {% endif %}
+                <a href="{{ url_for('public.live_scoreboard') }}" class="btn-secondary">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Live Scoreboard</span>
+                </a>
+            </div>
+            
+            <div class="hero-stats">
+                <div class="stat-card glass-card">
+                    <div class="stat-number" data-target="50">0</div>
+                    <div class="stat-label">Active Events</div>
+                </div>
+                <div class="stat-card glass-card">
+                    <div class="stat-number" data-target="200">0</div>
+                    <div class="stat-label">Participating Teams</div>
+                </div>
+                <div class="stat-card glass-card">
+                    <div class="stat-number" data-target="1000">0</div>
+                    <div class="stat-label">Participants</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="features-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Why Choose <span class="gradient-text">EventX?</span></h2>
+                <p>Experience cutting-edge technology for seamless event management</p>
+            </div>
+            
+            <div class="features-grid">
+                <div class="feature-card glass-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3>Real-time Scoring</h3>
+                    <p>Live updates and instant score calculations with advanced analytics</p>
+                </div>
+                
+                <div class="feature-card glass-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3>Secure Platform</h3>
+                    <p>Enterprise-grade security with role-based access control</p>
+                </div>
+                
+                <div class="feature-card glass-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    <h3>Analytics Dashboard</h3>
+                    <p>Comprehensive insights and performance metrics</p>
+                </div>
+                
+                <div class="feature-card glass-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-certificate"></i>
+                    </div>
+                    <h3>Digital Certificates</h3>
+                    <p>Automated certificate generation for winners</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="events-preview-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Upcoming <span class="gradient-text">Events</span></h2>
+                <p>Discover and participate in exciting events</p>
+            </div>
+            
+            <div class="events-grid" id="upcoming-events">
+                <div class="loading-spinner glass-card">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <span>Loading events...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="cta-section">
+        <div class="container">
+            <div class="cta-content glass-card">
+                <h2>Ready to Transform Your Events?</h2>
+                <p>Join the future of event management today</p>
+                {% if not current_user.is_authenticated %}
+                    <a href="{{ url_for('auth.login') }}" class="btn-primary">
+                        <i class="fas fa-arrow-right"></i>
+                        <span>Get Started Now</span>
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+    // preserve all original functionality: animate stats, load events from /api/events/upcoming
+    // Enhanced with intersection observer for fade-in of feature cards and event cards
+    
+    // 1) Stats number animation (exactly as original, but with more robust observer)
+    const animateNumber = (element, target) => {
+        let current = 0;
+        const increment = target / 50;
+        const timer = setInterval(() => {
+            current += increment;
+            if (current >= target) {
+                element.textContent = target;
+                clearInterval(timer);
+            } else {
+                element.textContent = Math.floor(current);
+            }
+        }, 30);
+    };
+
+    const statsObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const numbers = entry.target.querySelectorAll('.stat-number');
+                numbers.forEach(num => {
+                    const target = parseInt(num.getAttribute('data-target'), 10);
+                    if (!isNaN(target) && num.textContent === '0') {
+                        animateNumber(num, target);
+                    }
+                });
+                statsObserver.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.5, rootMargin: "0px 0px -100px 0px" });
+    
+    const statsSection = document.querySelector('.hero-stats');
+    if (statsSection) statsObserver.observe(statsSection);
+    
+    // 2) Load upcoming events from exactly the same endpoint
+    fetch('/api/events/upcoming')
+        .then(response => {
+            if (!response.ok) throw new Error('Network response was not ok');
+            return response.json();
+        })
+        .then(events => {
+            const container = document.getElementById('upcoming-events');
+            if (!events || events.length === 0) {
+                container.innerHTML = '<div class="no-events glass-card"><i class="fas fa-calendar-alt"></i><p>No upcoming events</p></div>';
+                return;
+            }
+            
+            container.innerHTML = events.map(event => {
+                // safety for date and teams_count
+                const eventDate = new Date(event.event_date);
+                const day = eventDate.getDate();
+                const month = eventDate.toLocaleString('default', { month: 'short' });
+                const teamsCount = event.teams_count || 0;
+                const descriptionShort = event.description ? (event.description.length > 100 ? event.description.substring(0, 100) + '...' : event.description) : '';
+                const statusClass = `status-${event.status || 'upcoming'}`;
+                return `
+                    <div class="event-card glass-card">
+                        <div class="event-date">
+                            <span class="day">${day}</span>
+                            <span class="month">${month}</span>
+                        </div>
+                        <h3>${escapeHtml(event.name) || 'Untitled'}</h3>
+                        <p>${escapeHtml(descriptionShort)}</p>
+                        <div class="event-meta">
+                            <span><i class="fas fa-map-marker-alt"></i> ${escapeHtml(event.venue) || 'TBD'}</span>
+                            <span><i class="fas fa-users"></i> ${teamsCount} Teams</span>
+                        </div>
+                        <div class="event-status ${statusClass}">
+                            <i class="fas fa-circle"></i>
+                            <span>${event.status || 'upcoming'}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            // trigger visibility check for new event cards
+            triggerCardsVisibility();
+        })
+        .catch(error => {
+            console.error('Error loading events:', error);
+            const container = document.getElementById('upcoming-events');
+            if (container) {
+                container.innerHTML = '<div class="error-message glass-card"><i class="fas fa-exclamation-circle"></i><p>Failed to load events</p></div>';
+            }
+        });
+    
+    // helper to prevent XSS
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
+            return c;
+        });
+    }
+    
+    // 3) Add scroll reveal for feature cards & event cards (modern look)
+    const revealObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+                revealObserver.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.2, rootMargin: "0px 0px -30px 0px" });
+    
+    // select all .feature-card, .stat-card, and later event cards after dynamic load
+    function observeCards() {
+        document.querySelectorAll('.feature-card, .stat-card').forEach(card => {
+            if (!card.classList.contains('visible')) {
+                revealObserver.observe(card);
+            }
+        });
+        document.querySelectorAll('.event-card').forEach(card => {
+            if (!card.classList.contains('visible')) {
+                revealObserver.observe(card);
+            }
+        });
+    }
+    
+    function triggerCardsVisibility() {
+        document.querySelectorAll('.feature-card, .stat-card, .event-card').forEach(card => {
+            if (!card.classList.contains('visible')) {
+                revealObserver.observe(card);
+            }
+        });
+    }
+    
+    // initial observation
+    setTimeout(() => {
+        observeCards();
+    }, 100);
+    
+    // also after events loaded, we call triggerCardsVisibility again inside fetch
+    // but also make a mutation observer fallback for dynamic content
+    const eventsContainer = document.getElementById('upcoming-events');
+    if (eventsContainer) {
+        const mutationObserver = new MutationObserver(() => {
+            triggerCardsVisibility();
+        });
+        mutationObserver.observe(eventsContainer, { childList: true, subtree: true });
+    }
+    
+    // 4) extra glassmorphic touch: floating background glow on hover for interactive elements
+    // no error, just style
+    
+    // 5) ensure stat numbers re-run if they haven't animated yet (edge case)
+    // handle potential that stats observer fires but numbers already animated? we set condition num.textContent === '0' 
+    // all good.
+    
+    // 6) polished cursor effect? not needed, but adds futuristic feel
+    const styleCursor = document.createElement('style');
+    styleCursor.textContent = `
+        ::selection {
+            background: #6b2eff77;
+            color: white;
+        }
+        a, .btn-primary, .btn-secondary {
+            cursor: pointer;
+        }
+    `;
+    document.head.appendChild(styleCursor);
+    
+    // extra micro interaction: stat cards get hover glow
+    const statCards = document.querySelectorAll('.stat-card');
+    statCards.forEach(card => {
+        card.addEventListener('mouseenter', (e) => {
+            card.style.transform = 'translateY(-5px) scale(1.02)';
+            card.style.transition = 'all 0.2s ease';
+        });
+        card.addEventListener('mouseleave', () => {
+            card.style.transform = '';
+        });
+    });
+    
+    
+    // Load events when page loads
+    document.addEventListener('DOMContentLoaded', loadUpcomingEvents);
+</script>
+{% endblock %}

@@ -1,0 +1,456 @@
+{% extends "base.html" %}
+
+{% block title %}Certificate Viewer - EventX Neural Certificates{% endblock %}
+
+{% block extra_css %}
+<style>
+    .viewer-container {
+        padding: 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    /* Certificate Display */
+    .certificate-viewer {
+        background: rgba(8, 18, 34, 0.6);
+        backdrop-filter: blur(12px);
+        border-radius: 1.5rem;
+        border: 1px solid rgba(0, 255, 255, 0.2);
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .viewer-header {
+        padding: 1.2rem 1.5rem;
+        background: linear-gradient(135deg, rgba(43, 110, 255, 0.1), rgba(155, 77, 255, 0.1));
+        border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .certificate-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .verification-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.4rem 1rem;
+        border-radius: 40px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .badge-verified {
+        background: rgba(0, 255, 136, 0.2);
+        color: #00ff88;
+        border: 1px solid rgba(0, 255, 136, 0.3);
+    }
+
+    .badge-pending {
+        background: rgba(255, 170, 51, 0.2);
+        color: #ffaa33;
+        border: 1px solid rgba(255, 170, 51, 0.3);
+    }
+
+    /* Certificate Frame */
+    .certificate-frame {
+        padding: 2rem;
+        display: flex;
+        justify-content: center;
+        background: #1a1a2e;
+        min-height: 600px;
+    }
+
+    .certificate-pdf {
+        max-width: 900px;
+        width: 100%;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .certificate-pdf iframe {
+        width: 100%;
+        height: 700px;
+        border: none;
+        background: white;
+    }
+
+    /* Action Buttons */
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: 1rem;
+    }
+
+    .btn-action {
+        padding: 0.8rem 1.5rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        border-radius: 40px;
+        color: white;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+    }
+
+    .btn-action:hover {
+        background: rgba(0, 255, 255, 0.1);
+        transform: translateY(-2px);
+    }
+
+    .btn-primary-action {
+        background: linear-gradient(135deg, #2b6eff, #9b4dff);
+        border: none;
+    }
+
+    .btn-primary-action:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(43, 110, 255, 0.4);
+    }
+
+    /* Certificate Details */
+    .certificate-details-card {
+        background: rgba(8, 18, 34, 0.6);
+        backdrop-filter: blur(12px);
+        border-radius: 1.5rem;
+        border: 1px solid rgba(0, 255, 255, 0.2);
+        padding: 1.5rem;
+        margin-top: 2rem;
+    }
+
+    .details-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1rem;
+    }
+
+    .detail-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.8rem;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 1rem;
+    }
+
+    .detail-icon {
+        width: 40px;
+        height: 40px;
+        background: rgba(0, 255, 255, 0.1);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        color: #00ffff;
+    }
+
+    .detail-content h4 {
+        font-size: 0.7rem;
+        color: #99aaff;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 0.2rem;
+    }
+
+    .detail-content p {
+        font-size: 1rem;
+        font-weight: 600;
+    }
+
+    .verification-code {
+        font-family: monospace;
+        background: rgba(0, 0, 0, 0.5);
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        letter-spacing: 1px;
+    }
+
+    /* Share Section */
+    .share-section {
+        margin-top: 2rem;
+        text-align: center;
+    }
+
+    .share-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .share-btn {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        color: white;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-decoration: none;
+    }
+
+    .share-btn:hover {
+        transform: translateY(-3px);
+    }
+
+    .share-btn.twitter:hover { background: #1DA1F2; border-color: #1DA1F2; }
+    .share-btn.linkedin:hover { background: #0077B5; border-color: #0077B5; }
+    .share-btn.facebook:hover { background: #4267B2; border-color: #4267B2; }
+    .share-btn.email:hover { background: #ea4335; border-color: #ea4335; }
+
+    @media (max-width: 768px) {
+        .viewer-container {
+            padding: 1rem;
+        }
+        
+        .certificate-pdf iframe {
+            height: 500px;
+        }
+        
+        .details-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media print {
+        .viewer-header,
+        .action-buttons,
+        .certificate-details-card,
+        .share-section,
+        nav,
+        footer {
+            display: none;
+        }
+        
+        .certificate-frame {
+            padding: 0;
+            background: white;
+        }
+        
+        .certificate-pdf iframe {
+            height: auto;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="viewer-container">
+    <!-- Certificate Viewer -->
+    <div class="certificate-viewer" data-aos="fade-up">
+        <div class="viewer-header">
+            <div class="certificate-title">
+                <i class="fas fa-certificate"></i>
+                <span>Certificate of {{ certificate.certificate_type|title }}</span>
+            </div>
+            <div class="verification-badge {% if certificate.is_verified %}badge-verified{% else %}badge-pending{% endif %}">
+                <i class="fas fa-{% if certificate.is_verified %}check-circle{% else %}clock{% endif %}"></i>
+                <span>{% if certificate.is_verified %}Verified{% else %}Pending Verification{% endif %}</span>
+            </div>
+        </div>
+        <div class="certificate-frame">
+            <div class="certificate-pdf">
+                <iframe src="{{ url_for('certificates.view_certificate', cert_id=certificate.verification_code) }}" 
+                        title="Certificate Preview"></iframe>
+            </div>
+        </div>
+        <div class="action-buttons">
+            <a href="{{ url_for('certificates.download_certificate', cert_id=certificate.verification_code) }}" 
+               class="btn-action btn-primary-action">
+                <i class="fas fa-download"></i>
+                <span>Download PDF</span>
+            </a>
+            <button class="btn-action" onclick="window.print()">
+                <i class="fas fa-print"></i>
+                <span>Print</span>
+            </button>
+            <button class="btn-action" onclick="copyLink()">
+                <i class="fas fa-link"></i>
+                <span>Copy Link</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Certificate Details -->
+    <div class="certificate-details-card" data-aos="fade-up" data-aos-delay="50">
+        <div class="certificate-title">
+            <i class="fas fa-info-circle"></i>
+            <span>Certificate Details</span>
+        </div>
+        <div class="details-grid">
+            <div class="detail-item">
+                <div class="detail-icon">
+                    <i class="fas fa-trophy"></i>
+                </div>
+                <div class="detail-content">
+                    <h4>Recipient</h4>
+                    <p>{{ certificate.team.name }}</p>
+                </div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-icon">
+                    <i class="fas fa-calendar-alt"></i>
+                </div>
+                <div class="detail-content">
+                    <h4>Event</h4>
+                    <p>{{ certificate.event.name }}</p>
+                </div>
+            </div>
+            {% if certificate.rank_position %}
+            <div class="detail-item">
+                <div class="detail-icon">
+                    <i class="fas fa-medal"></i>
+                </div>
+                <div class="detail-content">
+                    <h4>Achievement</h4>
+                    <p>{{ certificate.rank_position }}{% if certificate.rank_position == 1 %}st{% elif certificate.rank_position == 2 %}nd{% elif certificate.rank_position == 3 %}rd{% else %}th{% endif %} Place</p>
+                </div>
+            </div>
+            {% endif %}
+            {% if certificate.final_score %}
+            <div class="detail-item">
+                <div class="detail-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="detail-content">
+                    <h4>Score</h4>
+                    <p>{{ "%.1f"|format(certificate.final_score) }} points</p>
+                </div>
+            </div>
+            {% endif %}
+            <div class="detail-item">
+                <div class="detail-icon">
+                    <i class="fas fa-qrcode"></i>
+                </div>
+                <div class="detail-content">
+                    <h4>Verification Code</h4>
+                    <p class="verification-code">{{ certificate.verification_code }}</p>
+                </div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="detail-content">
+                    <h4>Issued Date</h4>
+                    <p>{{ certificate.generated_at.strftime('%B %d, %Y') }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Share Section -->
+    <div class="share-section" data-aos="fade-up" data-aos-delay="100">
+        <h4 style="color: #00ffff;">Share this Achievement</h4>
+        <div class="share-buttons">
+            <a href="#" class="share-btn twitter" onclick="shareOnTwitter()">
+                <i class="fab fa-twitter"></i>
+            </a>
+            <a href="#" class="share-btn linkedin" onclick="shareOnLinkedIn()">
+                <i class="fab fa-linkedin-in"></i>
+            </a>
+            <a href="#" class="share-btn facebook" onclick="shareOnFacebook()">
+                <i class="fab fa-facebook-f"></i>
+            </a>
+            <a href="#" class="share-btn email" onclick="shareByEmail()">
+                <i class="fas fa-envelope"></i>
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+    const certificateUrl = window.location.href;
+    const shareText = "I've received a certificate for {{ certificate.event.name }}! Check it out:";
+
+    function copyLink() {
+        navigator.clipboard.writeText(certificateUrl).then(() => {
+            showToast('Certificate link copied to clipboard!', 'success');
+        }).catch(() => {
+            showToast('Failed to copy link', 'error');
+        });
+    }
+
+    function shareOnTwitter() {
+        const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(certificateUrl)}`;
+        window.open(url, '_blank', 'width=600,height=400');
+    }
+
+    function shareOnLinkedIn() {
+        const url = `https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(certificateUrl)}&title=Certificate Achievement&summary=${encodeURIComponent(shareText)}`;
+        window.open(url, '_blank', 'width=600,height=400');
+    }
+
+    function shareOnFacebook() {
+        const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(certificateUrl)}`;
+        window.open(url, '_blank', 'width=600,height=400');
+    }
+
+    function shareByEmail() {
+        const subject = "Certificate Achievement";
+        const body = `${shareText}\n\nView certificate: ${certificateUrl}`;
+        window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    }
+
+    function showToast(message, type) {
+        const flashContainer = document.querySelector('.flash-container');
+        if (flashContainer) {
+            const toast = document.createElement('div');
+            toast.className = `flash-message flash-${type}`;
+            toast.innerHTML = `
+                <div class="flash-icon">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                </div>
+                <div class="flash-content">
+                    <span>${escapeHtml(message)}</span>
+                </div>
+                <button class="flash-close">&times;</button>
+                <div class="flash-progress"></div>
+            `;
+            flashContainer.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideOut 0.5s ease forwards';
+                setTimeout(() => toast.remove(), 500);
+            }, 5000);
+            
+            toast.querySelector('.flash-close').addEventListener('click', () => {
+                toast.style.animation = 'slideOut 0.3s ease forwards';
+                setTimeout(() => toast.remove(), 300);
+            });
+        }
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+</script>
+{% endblock %}

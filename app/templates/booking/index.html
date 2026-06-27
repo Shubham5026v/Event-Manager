@@ -1,0 +1,284 @@
+{% extends "base.html" %}
+
+{% block title %}Venue Bookings - EventX{% endblock %}
+
+{% block extra_css %}
+<style>
+    .bookings-page {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .bookings-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        gap: 1rem;
+    }
+
+    .booking-card {
+        background: rgba(10, 18, 35, 0.75);
+        border: 1px solid rgba(0, 255, 255, 0.15);
+        border-radius: 1.5rem;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 1.5rem;
+        align-items: center;
+        transition: all 0.3s ease;
+    }
+
+    .booking-card:hover {
+        transform: translateY(-2px);
+        border-color: rgba(0, 255, 255, 0.3);
+        box-shadow: 0 8px 25px rgba(0, 255, 255, 0.1);
+    }
+
+    .booking-info h3 {
+        margin: 0 0 0.5rem 0;
+        color: #ffffff;
+        font-size: 1.3rem;
+    }
+
+    .booking-details {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .detail-item {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .detail-label {
+        font-size: 0.8rem;
+        color: #a5bbff;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.25rem;
+    }
+
+    .detail-value {
+        font-size: 1rem;
+        color: #ffffff;
+        font-weight: 500;
+    }
+
+    .booking-status {
+        padding: 0.5rem 1rem;
+        border-radius: 2rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: inline-block;
+    }
+
+    .status-pending {
+        background: rgba(255, 193, 7, 0.2);
+        color: #ffc107;
+        border: 1px solid rgba(255, 193, 7, 0.3);
+    }
+
+    .status-approved {
+        background: rgba(40, 167, 69, 0.2);
+        color: #28a745;
+        border: 1px solid rgba(40, 167, 69, 0.3);
+    }
+
+    .status-confirmed {
+        background: rgba(0, 123, 255, 0.2);
+        color: #007bff;
+        border: 1px solid rgba(0, 123, 255, 0.3);
+    }
+
+    .status-completed {
+        background: rgba(23, 162, 184, 0.2);
+        color: #17a2b8;
+        border: 1px solid rgba(23, 162, 184, 0.3);
+    }
+
+    .status-cancelled {
+        background: rgba(220, 53, 69, 0.2);
+        color: #dc3545;
+        border: 1px solid rgba(220, 53, 69, 0.3);
+    }
+
+    .status-rejected {
+        background: rgba(108, 117, 125, 0.2);
+        color: #6c757d;
+        border: 1px solid rgba(108, 117, 125, 0.3);
+    }
+
+    .booking-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        justify-content: flex-end;
+    }
+
+    .booking-actions a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.75rem 1rem;
+        border-radius: 0.85rem;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        color: #ffffff;
+        text-decoration: none;
+        background: rgba(0, 255, 255, 0.08);
+        transition: all 0.25s ease;
+        font-size: 0.9rem;
+    }
+
+    .booking-actions a:hover {
+        transform: translateY(-1px);
+        background: rgba(0, 255, 255, 0.18);
+        border-color: rgba(0, 255, 255, 0.25);
+    }
+
+    .empty-state {
+        padding: 3rem;
+        border-radius: 1.25rem;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        text-align: center;
+        color: #a5bbff;
+    }
+
+    .empty-state h2 {
+        margin: 0 0 1rem 0;
+        color: #ffffff;
+    }
+
+    .empty-state p {
+        margin: 0.5rem 0;
+        font-size: 1rem;
+    }
+
+    @media (max-width: 768px) {
+        .bookings-page {
+            padding: 1rem;
+        }
+        
+        .booking-card {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+            padding: 1rem;
+        }
+
+        .booking-actions {
+            justify-content: center;
+        }
+
+        .bookings-header {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        
+        .booking-details {
+            grid-template-columns: 1fr 1fr;
+        }
+        
+        .booking-info h3 {
+            font-size: 1.1rem;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .booking-details {
+            grid-template-columns: 1fr;
+        }
+        
+        .booking-actions {
+            flex-direction: column;
+        }
+        
+        .booking-actions a {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="bookings-page">
+    <div class="bookings-header">
+        <div>
+            <h1>Venue Bookings</h1>
+            <p style="color: #a5bbff;">Manage your venue bookings and reservations.</p>
+        </div>
+        <a href="{{ url_for('booking.create') }}" class="btn-action btn-primary">
+            <i class="fas fa-plus"></i>
+            New Booking
+        </a>
+    </div>
+
+    {% if bookings %}
+        {% for booking in bookings %}
+            <div class="booking-card">
+                <div class="booking-info">
+                    <h3>{{ booking.title }}</h3>
+                    <div class="booking-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Venue</span>
+                            <span class="detail-value">{{ booking.venue.name }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Date & Time</span>
+                            <span class="detail-value">{{ booking.start_time.strftime('%Y-%m-%d %H:%M') }} - {{ booking.end_time.strftime('%H:%M') }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Event Type</span>
+                            <span class="detail-value">{{ booking.event_type|title }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Attendees</span>
+                            <span class="detail-value">{{ booking.expected_attendees }}</span>
+                        </div>
+                    </div>
+                    {% if booking.description %}
+                        <p style="color: #a5bbff; margin: 0.5rem 0; font-size: 0.95rem;">{{ booking.description }}</p>
+                    {% endif %}
+                    <div class="booking-status status-{{ booking.status.value.lower() }}">
+                        {{ booking.status.value|title }}
+                    </div>
+                </div>
+                <div class="booking-actions">
+                    <a href="{{ url_for('booking.view', booking_id=booking.id) }}">
+                        <i class="fas fa-eye"></i>
+                        View
+                    </a>
+                    {% if booking.status.value in ['draft', 'pending_faculty'] %}
+                        <a href="{{ url_for('booking.edit', booking_id=booking.id) }}">
+                            <i class="fas fa-edit"></i>
+                            Edit
+                        </a>
+                        <a href="{{ url_for('booking.cancel', booking_id=booking.id) }}" onclick="return confirm('Are you sure you want to cancel this booking?')">
+                            <i class="fas fa-times"></i>
+                            Cancel
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <i class="fas fa-calendar-times" style="font-size: 3rem; color: #a5bbff; margin-bottom: 1rem;"></i>
+            <h2>No Bookings Found</h2>
+            <p>You haven't made any venue bookings yet.</p>
+            <p style="font-size: 0.9rem;">Create your first booking to get started!</p>
+            <a href="{{ url_for('booking.create') }}" class="btn-action btn-primary" style="margin-top: 1rem;">
+                <i class="fas fa-plus"></i>
+                Create Booking
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

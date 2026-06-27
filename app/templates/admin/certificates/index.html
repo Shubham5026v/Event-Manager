@@ -1,0 +1,833 @@
+{% extends "base.html" %}
+
+{% block title %}Certificate Management - EventX Neural Certificates{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Certificate Management Styles */
+    .certificates-container {
+        padding: 2rem;
+        max-width: 1600px;
+        margin: 0 auto;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: rgba(8, 18, 34, 0.6);
+        backdrop-filter: blur(12px);
+        border-radius: 1.5rem;
+        padding: 1.5rem;
+        border: 1px solid rgba(0, 255, 255, 0.2);
+        transition: all 0.3s;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        border-color: rgba(0, 255, 255, 0.5);
+    }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, rgba(0, 255, 255, 0.05), transparent);
+        pointer-events: none;
+    }
+
+    .stat-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, #2b6eff, #9b4dff);
+        border-radius: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: 800;
+        font-family: 'Orbitron', monospace;
+        margin-bottom: 0.3rem;
+        background: linear-gradient(135deg, #fff, #00ffff);
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+    }
+
+    .stat-label {
+        color: #99aaff;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    /* Events Table */
+    .events-card {
+        background: rgba(8, 18, 34, 0.6);
+        backdrop-filter: blur(12px);
+        border-radius: 1.5rem;
+        border: 1px solid rgba(0, 255, 255, 0.2);
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .card-header {
+        padding: 1.2rem 1.5rem;
+        background: linear-gradient(135deg, rgba(43, 110, 255, 0.1), rgba(155, 77, 255, 0.1));
+        border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .card-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .card-title i {
+        color: #00ffff;
+    }
+
+    .events-table-container {
+        overflow-x: auto;
+    }
+
+    .events-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .events-table th {
+        text-align: left;
+        padding: 1rem 1.5rem;
+        background: rgba(0, 255, 255, 0.05);
+        color: #00ffff;
+        font-weight: 600;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .events-table td {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid rgba(0, 255, 255, 0.1);
+        color: #e0e8ff;
+    }
+
+    .events-table tr:hover {
+        background: rgba(0, 255, 255, 0.05);
+    }
+
+    /* Progress Bar */
+    .progress-container {
+        width: 150px;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .progress-bar {
+        height: 6px;
+        background: linear-gradient(90deg, #00ffff, #6b2eff);
+        border-radius: 10px;
+        transition: width 0.5s ease;
+    }
+
+    .progress-text {
+        font-size: 0.7rem;
+        color: #99aaff;
+        margin-top: 0.2rem;
+        text-align: center;
+    }
+
+    /* Action Buttons */
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .btn-icon {
+        padding: 0.4rem 0.8rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        border-radius: 8px;
+        color: #99aaff;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 0.85rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .btn-icon:hover {
+        background: rgba(0, 255, 255, 0.2);
+        color: #00ffff;
+        transform: scale(1.05);
+    }
+
+    .btn-icon.danger:hover {
+        background: rgba(255, 51, 102, 0.2);
+        color: #ff3366;
+        border-color: rgba(255, 51, 102, 0.5);
+    }
+
+    .btn-icon.success:hover {
+        background: rgba(0, 255, 136, 0.2);
+        color: #00ff88;
+        border-color: rgba(0, 255, 136, 0.5);
+    }
+
+    /* Status Badges */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .status-completed {
+        background: rgba(0, 255, 136, 0.2);
+        color: #00ff88;
+        border: 1px solid rgba(0, 255, 136, 0.3);
+    }
+
+    .status-pending {
+        background: rgba(255, 170, 51, 0.2);
+        color: #ffaa33;
+        border: 1px solid rgba(255, 170, 51, 0.3);
+    }
+
+    .status-partial {
+        background: rgba(0, 255, 255, 0.2);
+        color: #00ffff;
+        border: 1px solid rgba(0, 255, 255, 0.3);
+    }
+
+    /* Recent Certificates */
+    .recent-certificates {
+        background: rgba(8, 18, 34, 0.6);
+        backdrop-filter: blur(12px);
+        border-radius: 1.5rem;
+        border: 1px solid rgba(0, 255, 255, 0.2);
+        overflow: hidden;
+    }
+
+    .certificate-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid rgba(0, 255, 255, 0.1);
+        transition: all 0.2s;
+    }
+
+    .certificate-item:hover {
+        background: rgba(0, 255, 255, 0.05);
+    }
+
+    .certificate-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex: 1;
+    }
+
+    .certificate-icon {
+        width: 40px;
+        height: 40px;
+        background: rgba(0, 255, 255, 0.1);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+
+    .certificate-details h4 {
+        font-size: 0.9rem;
+        margin-bottom: 0.2rem;
+    }
+
+    .certificate-details p {
+        font-size: 0.75rem;
+        color: #99aaff;
+    }
+
+    .certificate-meta {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    .verification-code {
+        font-family: monospace;
+        font-size: 0.8rem;
+        background: rgba(0, 0, 0, 0.3);
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        color: #00ffff;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        color: #00ffff;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    /* Modal */
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.85);
+        backdrop-filter: blur(15px);
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal.active {
+        display: flex;
+    }
+
+    .modal-content {
+        background: rgba(8, 18, 34, 0.95);
+        backdrop-filter: blur(20px);
+        border-radius: 2rem;
+        padding: 2rem;
+        max-width: 500px;
+        width: 90%;
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        animation: modalSlideIn 0.3s ease;
+    }
+
+    @keyframes modalSlideIn {
+        from {
+            transform: translateY(-50px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .modal-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .modal-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+
+    @media (max-width: 768px) {
+        .certificates-container {
+            padding: 1rem;
+        }
+        
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .events-table th,
+        .events-table td {
+            padding: 0.8rem;
+        }
+        
+        .certificate-item {
+            flex-direction: column;
+            gap: 0.8rem;
+            align-items: flex-start;
+        }
+        
+        .certificate-meta {
+            width: 100%;
+            justify-content: space-between;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="certificates-container">
+    <!-- Page Header -->
+    <div class="page-header" data-aos="fade-up">
+        <div class="page-title">
+            <i class="fas fa-certificate"></i>
+            <span>Certificate Management</span>
+        </div>
+        <div class="header-actions">
+            <button class="btn-glass" onclick="window.location.href='{{ url_for('certificates.manage_templates') }}'">
+                <i class="fas fa-palette"></i>
+                <span>Manage Templates</span>
+            </button>
+            <button class="btn-glass" onclick="refreshStats()">
+                <i class="fas fa-sync-alt"></i>
+                <span>Refresh</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Statistics Grid -->
+    <div class="stats-grid" data-aos="fade-up" data-aos-delay="50">
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-icon">
+                    <i class="fas fa-certificate"></i>
+                </div>
+            </div>
+            <div class="stat-value" id="totalCertificates">{{ total_certificates }}</div>
+            <div class="stat-label">Total Certificates</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-icon">
+                    <i class="fas fa-trophy"></i>
+                </div>
+            </div>
+            <div class="stat-value" id="winnerCertificates">{{ winner_certificates }}</div>
+            <div class="stat-label">Winner Certificates</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+            </div>
+            <div class="stat-value" id="participationCertificates">{{ participation_certificates }}</div>
+            <div class="stat-label">Participation Certificates</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+            </div>
+            <div class="stat-value" id="verifiedCertificates">{{ total_verifications }}</div>
+            <div class="stat-label">Verified Online</div>
+        </div>
+    </div>
+
+    <!-- Events Table -->
+    <div class="events-card" data-aos="fade-up" data-aos-delay="100">
+        <div class="card-header">
+            <div class="card-title">
+                <i class="fas fa-calendar-alt"></i>
+                <span>Events & Certificate Status</span>
+            </div>
+            <div>
+                <span class="status-badge status-completed">
+                    <i class="fas fa-check-circle"></i> Generated
+                </span>
+                <span class="status-badge status-partial">
+                    <i class="fas fa-chart-line"></i> Partial
+                </span>
+                <span class="status-badge status-pending">
+                    <i class="fas fa-clock"></i> Pending
+                </span>
+            </div>
+        </div>
+        <div class="events-table-container">
+            <table class="events-table">
+                <thead>
+                    <tr>
+                        <th>Event Name</th>
+                        <th>Date</th>
+                        <th>Teams</th>
+                        <th>Certificates</th>
+                        <th>Progress</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="eventsTableBody">
+                    {% for event_data in events_data %}
+                    <tr>
+                        <td>
+                            <strong>{{ event_data.event.name }}</strong>
+                            {% if event_data.event.status == 'completed' %}
+                                <span class="status-badge status-completed" style="margin-left: 0.5rem; font-size: 0.7rem;">Completed</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ event_data.event.event_date.strftime('%b %d, %Y') }}</td>
+                        <td>{{ event_data.team_count }}</td>
+                        <td>{{ event_data.certificate_count }} / {{ event_data.team_count }}</td>
+                        <td>
+                            <div class="progress-container">
+                                <div class="progress-bar" style="width: {{ event_data.generation_percentage }}%"></div>
+                            </div>
+                            <div class="progress-text">{{ "%.1f"|format(event_data.generation_percentage) }}%</div>
+                        </td>
+                        <td>
+                            {% if event_data.certificate_count == event_data.team_count and event_data.team_count > 0 %}
+                                <span class="status-badge status-completed">
+                                    <i class="fas fa-check-circle"></i> Complete
+                                </span>
+                            {% elif event_data.certificate_count > 0 %}
+                                <span class="status-badge status-partial">
+                                    <i class="fas fa-chart-line"></i> Partial
+                                </span>
+                            {% else %}
+                                <span class="status-badge status-pending">
+                                    <i class="fas fa-clock"></i> Pending
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                {% if event_data.event.status == 'completed' or event_data.certificate_count > 0 %}
+                                    <a href="{{ url_for('certificates.event_certificates', event_id=event_data.event.id) }}" 
+                                       class="btn-icon" title="View Certificates">
+                                        <i class="fas fa-eye"></i>
+                                        <span>View</span>
+                                    </a>
+                                {% endif %}
+                                {% if event_data.certificate_count < event_data.team_count and event_data.team_count > 0 %}
+                                    <button class="btn-icon success" onclick="generateCertificates({{ event_data.event.id }})" title="Generate Certificates">
+                                        <i class="fas fa-plus-circle"></i>
+                                        <span>Generate</span>
+                                    </button>
+                                {% endif %}
+                                {% if event_data.certificate_count > 0 %}
+                                    <button class="btn-icon" onclick="downloadAllCertificates({{ event_data.event.id }})" title="Download All">
+                                        <i class="fas fa-download"></i>
+                                        <span>Download All</span>
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="empty-state">
+                            <i class="fas fa-calendar-alt"></i>
+                            <p>No events found. Create an event to start generating certificates.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Recent Certificates -->
+    <div class="recent-certificates" data-aos="fade-up" data-aos-delay="150">
+        <div class="card-header">
+            <div class="card-title">
+                <i class="fas fa-history"></i>
+                <span>Recently Generated Certificates</span>
+            </div>
+            <button class="btn-icon" onclick="refreshRecent()">
+                <i class="fas fa-sync-alt"></i>
+                <span>Refresh</span>
+            </button>
+        </div>
+        <div id="recentCertificatesList">
+            {% if recent_certificates %}
+                {% for cert in recent_certificates %}
+                <div class="certificate-item">
+                    <div class="certificate-info">
+                        <div class="certificate-icon">
+                            {% if cert.certificate_type == 'winner' %}
+                                <i class="fas fa-trophy" style="color: #ffaa33;"></i>
+                            {% else %}
+                                <i class="fas fa-certificate" style="color: #00ffff;"></i>
+                            {% endif %}
+                        </div>
+                        <div class="certificate-details">
+                            <h4>{{ cert.team.name }}</h4>
+                            <p>{{ cert.event.name }} • 
+                               {% if cert.rank_position %}
+                                   {{ cert.rank_position }}{% if cert.rank_position == 1 %}st{% elif cert.rank_position == 2 %}nd{% elif cert.rank_position == 3 %}rd{% else %}th{% endif %} Place
+                               {% else %}
+                                   Participation
+                               {% endif %}
+                               • Score: {{ "%.1f"|format(cert.final_score) if cert.final_score else 'N/A' }}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="certificate-meta">
+                        <span class="verification-code">{{ cert.verification_code[:12] }}...</span>
+                        <div class="action-buttons">
+                            <a href="{{ url_for('certificates.admin_download_certificate', cert_id=cert.id) }}" 
+                               class="btn-icon" title="Download">
+                                <i class="fas fa-download"></i>
+                            </a>
+                            <a href="{{ url_for('certificates.view_certificate', cert_id=cert.verification_code) }}" 
+                               class="btn-icon" title="View" target="_blank">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <button class="btn-icon" onclick="copyVerificationCode('{{ cert.verification_code }}')" title="Copy Code">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                            <button class="btn-icon danger" onclick="deleteCertificate({{ cert.id }}, '{{ cert.team.name }}')" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-certificate"></i>
+                    <p>No certificates generated yet. Generate certificates for events to see them here.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">
+                <i class="fas fa-trash-alt"></i>
+                <span>Delete Certificate</span>
+            </h3>
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+        </div>
+        <div class="delete-warning" style="text-align: center; padding: 1rem;">
+            <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: #ff3366; margin-bottom: 1rem;"></i>
+            <h4>Are you sure?</h4>
+            <p>This certificate will be permanently deleted. This action cannot be undone.</p>
+            <p id="deleteTeamName" style="color: #ff3366; font-weight: bold; margin-top: 1rem;"></p>
+        </div>
+        <div class="modal-actions">
+            <button class="btn-danger-modal" onclick="confirmDelete()">Delete Permanently</button>
+            <button class="btn-secondary-modal" onclick="closeModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let deleteCertificateId = null;
+    let deleteCertificateName = null;
+
+    // Generate certificates for event
+    function generateCertificates(eventId) {
+        if (confirm('Generate certificates for all teams in this event? This may take a few moments.')) {
+            window.location.href = `{{ url_for('certificates.generate_event_certificates', event_id=0) }}`.replace('0', eventId);
+        }
+    }
+
+    // Download all certificates for event
+    function downloadAllCertificates(eventId) {
+        window.location.href = `/certificates/admin/event/${eventId}/download-all`;
+    }
+
+    // Copy verification code to clipboard
+    function copyVerificationCode(code) {
+        navigator.clipboard.writeText(code).then(() => {
+            showToast('Verification code copied to clipboard!', 'success');
+        }).catch(() => {
+            showToast('Failed to copy code', 'error');
+        });
+    }
+
+    // Delete certificate
+    function deleteCertificate(certId, teamName) {
+        deleteCertificateId = certId;
+        deleteCertificateName = teamName;
+        document.getElementById('deleteTeamName').textContent = `"${teamName}"`;
+        document.getElementById('deleteModal').classList.add('active');
+    }
+
+    function confirmDelete() {
+        if (deleteCertificateId) {
+            fetch(`/certificates/admin/certificate/${deleteCertificateId}/delete`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            }).then(response => {
+                if (response.ok) {
+                    showToast('Certificate deleted successfully', 'success');
+                    location.reload();
+                } else {
+                    showToast('Failed to delete certificate', 'error');
+                }
+            }).catch(error => {
+                console.error('Error:', error);
+                showToast('An error occurred', 'error');
+            });
+            closeModal();
+        }
+    }
+
+    function closeModal() {
+        document.getElementById('deleteModal').classList.remove('active');
+        deleteCertificateId = null;
+        deleteCertificateName = null;
+    }
+
+    // Refresh statistics
+    function refreshStats() {
+        fetch('/certificates/api/stats')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('totalCertificates').textContent = data.total;
+                document.getElementById('winnerCertificates').textContent = data.winner;
+                document.getElementById('participationCertificates').textContent = data.participation;
+                document.getElementById('verifiedCertificates').textContent = data.verified;
+                showToast('Statistics refreshed', 'success');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('Failed to refresh statistics', 'error');
+            });
+    }
+
+    // Refresh recent certificates
+    function refreshRecent() {
+        fetch('/certificates/api/recent')
+            .then(response => response.json())
+            .then(data => {
+                const container = document.getElementById('recentCertificatesList');
+                if (data.certificates && data.certificates.length > 0) {
+                    container.innerHTML = data.certificates.map(cert => `
+                        <div class="certificate-item">
+                            <div class="certificate-info">
+                                <div class="certificate-icon">
+                                    ${cert.certificate_type === 'winner' ? 
+                                        '<i class="fas fa-trophy" style="color: #ffaa33;"></i>' : 
+                                        '<i class="fas fa-certificate" style="color: #00ffff;"></i>'}
+                                </div>
+                                <div class="certificate-details">
+                                    <h4>${escapeHtml(cert.team_name)}</h4>
+                                    <p>${escapeHtml(cert.event_name)} • ${cert.rank_position ? cert.rank_position + ' Place' : 'Participation'} • Score: ${cert.final_score || 'N/A'}</p>
+                                </div>
+                            </div>
+                            <div class="certificate-meta">
+                                <span class="verification-code">${cert.verification_code.substring(0, 12)}...</span>
+                                <div class="action-buttons">
+                                    <a href="/certificates/admin/certificate/${cert.id}/download" class="btn-icon" title="Download">
+                                        <i class="fas fa-download"></i>
+                                    </a>
+                                    <a href="/certificates/view/${cert.verification_code}" class="btn-icon" title="View" target="_blank">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <button class="btn-icon" onclick="copyVerificationCode('${cert.verification_code}')" title="Copy Code">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                    <button class="btn-icon danger" onclick="deleteCertificate(${cert.id}, '${escapeHtml(cert.team_name)}')" title="Delete">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = '<div class="empty-state"><i class="fas fa-certificate"></i><p>No certificates generated yet.</p></div>';
+                }
+                showToast('Recent certificates refreshed', 'success');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('Failed to refresh recent certificates', 'error');
+            });
+    }
+
+    function showToast(message, type) {
+        const flashContainer = document.querySelector('.flash-container');
+        if (flashContainer) {
+            const toast = document.createElement('div');
+            toast.className = `flash-message flash-${type}`;
+            toast.innerHTML = `
+                <div class="flash-icon">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                </div>
+                <div class="flash-content">
+                    <span>${escapeHtml(message)}</span>
+                </div>
+                <button class="flash-close">&times;</button>
+                <div class="flash-progress"></div>
+            `;
+            flashContainer.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideOut 0.5s ease forwards';
+                setTimeout(() => toast.remove(), 500);
+            }, 5000);
+            
+            toast.querySelector('.flash-close').addEventListener('click', () => {
+                toast.style.animation = 'slideOut 0.3s ease forwards';
+                setTimeout(() => toast.remove(), 300);
+            });
+        }
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    // Auto-refresh stats every 30 seconds
+    let refreshInterval = setInterval(refreshStats, 30000);
+    
+    // Clear interval on page unload
+    window.addEventListener('beforeunload', () => {
+        if (refreshInterval) clearInterval(refreshInterval);
+    });
+</script>
+{% endblock %}

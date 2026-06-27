@@ -1,0 +1,483 @@
+{% extends "base.html" %}
+
+{% block title %}Verify Certificate - EventX Neural Certificates{% endblock %}
+
+{% block extra_css %}
+<style>
+    .verify-container {
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+    }
+
+    .verify-card {
+        background: rgba(8, 18, 34, 0.8);
+        backdrop-filter: blur(20px);
+        border-radius: 2rem;
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        padding: 3rem;
+        max-width: 700px;
+        width: 100%;
+        animation: fadeInUp 0.6s ease;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .verify-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .verify-icon {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, #2b6eff, #9b4dff);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+    }
+
+    .verify-icon i {
+        font-size: 2.5rem;
+        color: white;
+    }
+
+    h1 {
+        font-size: 2rem;
+        font-weight: 800;
+        font-family: 'Orbitron', monospace;
+        margin-bottom: 0.5rem;
+        background: linear-gradient(135deg, #fff, #00ffff);
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+    }
+
+    .subtitle {
+        color: #99aaff;
+        font-size: 0.9rem;
+    }
+
+    /* Verification Form */
+    .verify-form {
+        margin: 2rem 0;
+    }
+
+    .input-group {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .verify-input {
+        flex: 1;
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        border-radius: 12px;
+        color: white;
+        font-family: monospace;
+        font-size: 1.1rem;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        text-align: center;
+    }
+
+    .verify-input:focus {
+        outline: none;
+        border-color: #00ffff;
+        box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
+    }
+
+    .verify-btn {
+        padding: 1rem 2rem;
+        background: linear-gradient(135deg, #2b6eff, #9b4dff);
+        border: none;
+        border-radius: 12px;
+        color: white;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .verify-btn:hover {
+        transform: scale(1.02);
+        box-shadow: 0 5px 20px rgba(43, 110, 255, 0.4);
+    }
+
+    /* Verification Result */
+    .verification-result {
+        margin-top: 2rem;
+        padding: 1.5rem;
+        border-radius: 1rem;
+        animation: slideIn 0.5s ease;
+    }
+
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .result-valid {
+        background: rgba(0, 255, 136, 0.1);
+        border: 1px solid rgba(0, 255, 136, 0.3);
+    }
+
+    .result-invalid {
+        background: rgba(255, 51, 102, 0.1);
+        border: 1px solid rgba(255, 51, 102, 0.3);
+    }
+
+    .result-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .result-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+
+    .result-valid .result-icon {
+        background: rgba(0, 255, 136, 0.2);
+        color: #00ff88;
+    }
+
+    .result-invalid .result-icon {
+        background: rgba(255, 51, 102, 0.2);
+        color: #ff3366;
+    }
+
+    .result-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+    }
+
+    .certificate-details {
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid rgba(0, 255, 255, 0.2);
+    }
+
+    .detail-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid rgba(0, 255, 255, 0.1);
+    }
+
+    .detail-label {
+        color: #99aaff;
+    }
+
+    .detail-value {
+        font-weight: 600;
+    }
+
+    .view-certificate-btn {
+        margin-top: 1rem;
+        padding: 0.8rem 1.5rem;
+        background: rgba(0, 255, 255, 0.1);
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        border-radius: 40px;
+        color: #00ffff;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .view-certificate-btn:hover {
+        background: rgba(0, 255, 255, 0.2);
+        transform: translateY(-2px);
+    }
+
+    /* Examples */
+    .example-code {
+        margin-top: 1.5rem;
+        text-align: center;
+        font-size: 0.8rem;
+        color: #99aaff;
+    }
+
+    .example-code span {
+        font-family: monospace;
+        background: rgba(0, 0, 0, 0.3);
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    .example-code span:hover {
+        background: rgba(0, 255, 255, 0.2);
+        color: #00ffff;
+    }
+
+    @media (max-width: 768px) {
+        .verify-card {
+            padding: 1.5rem;
+        }
+        
+        h1 {
+            font-size: 1.5rem;
+        }
+        
+        .input-group {
+            flex-direction: column;
+        }
+        
+        .verify-btn {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .detail-row {
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="verify-container">
+    <div class="verify-card">
+        <div class="verify-header">
+            <div class="verify-icon">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <h1>Certificate Verification</h1>
+            <p class="subtitle">Enter the verification code to validate authenticity</p>
+        </div>
+
+        <div class="verify-form">
+            <div class="input-group">
+                <input type="text" 
+                       class="verify-input" 
+                       id="verificationCode" 
+                       placeholder="Enter 16-digit verification code"
+                       maxlength="16"
+                       autocomplete="off">
+                <button class="verify-btn" onclick="verifyCertificate()">
+                    <i class="fas fa-search"></i>
+                    <span>Verify</span>
+                </button>
+            </div>
+            <div class="example-code">
+                <i class="fas fa-question-circle"></i>
+                <span>Example: <span onclick="fillExample()">A1B2C3D4E5F6G7H8</span></span>
+            </div>
+        </div>
+
+        <div id="verificationResult"></div>
+    </div>
+</div>
+
+<script>
+    async function verifyCertificate() {
+        const code = document.getElementById('verificationCode').value.trim().toUpperCase();
+        
+        if (!code) {
+            showError('Please enter a verification code');
+            return;
+        }
+        
+        if (code.length !== 16 && code.length !== 32) {
+            showError('Invalid verification code format. Code should be 16 or 32 characters.');
+            return;
+        }
+        
+        showLoading();
+        
+        try {
+            const response = await fetch(`/certificates/api/verify/${code}`);
+            const data = await response.json();
+            
+            if (response.ok && data.valid) {
+                showValidResult(data.certificate);
+            } else {
+                showInvalidResult(data.message || 'Certificate not found or invalid');
+            }
+        } catch (error) {
+            console.error('Verification error:', error);
+            showError('Unable to verify certificate. Please try again.');
+        }
+    }
+    
+    function showLoading() {
+        const resultDiv = document.getElementById('verificationResult');
+        resultDiv.innerHTML = `
+            <div class="verification-result" style="text-align: center;">
+                <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: #00ffff;"></i>
+                <p style="margin-top: 1rem;">Verifying certificate...</p>
+            </div>
+        `;
+    }
+    
+    function showValidResult(certificate) {
+        const resultDiv = document.getElementById('verificationResult');
+        const rankText = certificate.rank_position ? 
+            `${certificate.rank_position}${certificate.rank_position === 1 ? 'st' : certificate.rank_position === 2 ? 'nd' : certificate.rank_position === 3 ? 'rd' : 'th'} Place` : 
+            'Participant';
+        
+        resultDiv.innerHTML = `
+            <div class="verification-result result-valid">
+                <div class="result-header">
+                    <div class="result-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div>
+                        <div class="result-title">✓ Verified Certificate</div>
+                        <p style="color: #00ff88; font-size: 0.8rem;">This is a valid and authentic certificate</p>
+                    </div>
+                </div>
+                <div class="certificate-details">
+                    <div class="detail-row">
+                        <span class="detail-label">Recipient</span>
+                        <span class="detail-value">${escapeHtml(certificate.team_name)}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Event</span>
+                        <span class="detail-value">${escapeHtml(certificate.event_name)}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Achievement</span>
+                        <span class="detail-value">${rankText}</span>
+                    </div>
+                    ${certificate.score ? `
+                    <div class="detail-row">
+                        <span class="detail-label">Score</span>
+                        <span class="detail-value">${certificate.score.toFixed(1)} points</span>
+                    </div>
+                    ` : ''}
+                    <div class="detail-row">
+                        <span class="detail-label">Certificate Type</span>
+                        <span class="detail-value">${certificate.certificate_type === 'winner' ? '🏆 Winner Certificate' : '📜 Participation Certificate'}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Issued Date</span>
+                        <span class="detail-value">${new Date(certificate.generated_at).toLocaleDateString()}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Verification Code</span>
+                        <span class="detail-value" style="font-family: monospace;">${certificate.verification_code}</span>
+                    </div>
+                    ${certificate.verification_count ? `
+                    <div class="detail-row">
+                        <span class="detail-label">Verification Count</span>
+                        <span class="detail-value">${certificate.verification_count} times</span>
+                    </div>
+                    ` : ''}
+                </div>
+                <div style="margin-top: 1rem;">
+                    <a href="/certificates/view/${certificate.verification_code}" class="view-certificate-btn">
+                        <i class="fas fa-eye"></i>
+                        <span>View Full Certificate</span>
+                    </a>
+                </div>
+            </div>
+        `;
+    }
+    
+    function showInvalidResult(message) {
+        const resultDiv = document.getElementById('verificationResult');
+        resultDiv.innerHTML = `
+            <div class="verification-result result-invalid">
+                <div class="result-header">
+                    <div class="result-icon">
+                        <i class="fas fa-times-circle"></i>
+                    </div>
+                    <div>
+                        <div class="result-title">✗ Invalid Certificate</div>
+                        <p style="color: #ff3366; font-size: 0.8rem;">${escapeHtml(message)}</p>
+                    </div>
+                </div>
+                <div class="certificate-details">
+                    <p style="text-align: center; color: #99aaff;">
+                        <i class="fas fa-info-circle"></i>
+                        Please verify the code and try again. If you believe this is an error, contact the event organizer.
+                    </p>
+                </div>
+            </div>
+        `;
+    }
+    
+    function showError(message) {
+        const resultDiv = document.getElementById('verificationResult');
+        resultDiv.innerHTML = `
+            <div class="verification-result result-invalid">
+                <div class="result-header">
+                    <div class="result-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div>
+                        <div class="result-title">Verification Error</div>
+                        <p style="color: #ffaa33; font-size: 0.8rem;">${escapeHtml(message)}</p>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    function fillExample() {
+        document.getElementById('verificationCode').value = 'A1B2C3D4E5F6G7H8';
+        verifyCertificate();
+    }
+    
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+    
+    // Auto-verify if code is in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const codeParam = urlParams.get('code');
+    if (codeParam) {
+        document.getElementById('verificationCode').value = codeParam.toUpperCase();
+        verifyCertificate();
+    }
+    
+    // Enter key support
+    document.getElementById('verificationCode').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            verifyCertificate();
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,1121 @@
+{% extends "base.html" %}
+
+{% block title %}Score Management - EventX Neural Scoring{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Score Management Specific Styles */
+    .score-container {
+        padding: 2rem;
+        max-width: 1600px;
+        margin: 0 auto;
+    }
+
+    /* Page Header */
+    .page-header {
+        margin-bottom: 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .page-title {
+        font-size: 2rem;
+        font-weight: 800;
+        font-family: 'Orbitron', monospace;
+        background: linear-gradient(135deg, #fff, #00ffff);
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+    }
+
+    .page-title i {
+        background: linear-gradient(135deg, #00ffff, #ff3d7f);
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+    }
+
+    /* Event Selector */
+    .event-selector {
+        background: rgba(8, 18, 34, 0.6);
+        backdrop-filter: blur(12px);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        border: 1px solid rgba(0, 255, 255, 0.2);
+    }
+
+    .selector-title {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+        color: #00ffff;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .event-select {
+        width: 100%;
+        padding: 0.8rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        border-radius: 12px;
+        color: white;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .event-select:focus {
+        outline: none;
+        border-color: #00ffff;
+        box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
+    }
+
+    /* Scoreboard Header */
+    .scoreboard-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .event-info {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .event-info-badge {
+        background: rgba(0, 255, 255, 0.1);
+        padding: 0.4rem 1rem;
+        border-radius: 20px;
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        font-size: 0.85rem;
+    }
+
+    .event-info-badge i {
+        margin-right: 0.5rem;
+        color: #00ffff;
+    }
+
+    .score-actions {
+        display: flex;
+        gap: 0.8rem;
+    }
+
+    /* Teams Grid */
+    .teams-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .team-score-card {
+        background: rgba(8, 18, 34, 0.6);
+        backdrop-filter: blur(12px);
+        border-radius: 1.5rem;
+        border: 1px solid rgba(0, 255, 255, 0.2);
+        overflow: hidden;
+        transition: all 0.3s;
+        animation: cardGlow 2s ease-in-out infinite;
+    }
+
+    @keyframes cardGlow {
+        0%, 100% { border-color: rgba(0, 255, 255, 0.2); }
+        50% { border-color: rgba(0, 255, 255, 0.5); }
+    }
+
+    .team-score-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(0, 255, 255, 0.15);
+    }
+
+    .team-card-header {
+        padding: 1.2rem 1.5rem;
+        background: linear-gradient(135deg, rgba(43, 110, 255, 0.15), rgba(155, 77, 255, 0.15));
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+    }
+
+    .team-rank {
+        font-size: 1.5rem;
+        font-weight: 800;
+        font-family: 'Orbitron', monospace;
+        color: #00ffff;
+    }
+
+    .team-rank i {
+        font-size: 1rem;
+        margin-right: 0.3rem;
+    }
+
+    .team-name {
+        font-size: 1.2rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .team-name i {
+        color: #ffaa33;
+    }
+
+    .team-card-body {
+        padding: 1.5rem;
+    }
+
+    .score-display {
+        text-align: center;
+        margin-bottom: 1.5rem;
+        position: relative;
+    }
+
+    .score-value {
+        font-size: 3.5rem;
+        font-weight: 800;
+        font-family: 'Orbitron', monospace;
+        background: linear-gradient(135deg, #fff, #00ffff);
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+        animation: scorePulse 1s ease;
+    }
+
+    @keyframes scorePulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); text-shadow: 0 0 20px rgba(0, 255, 255, 0.5); }
+        100% { transform: scale(1); }
+    }
+
+    .score-label {
+        font-size: 0.8rem;
+        color: #99aaff;
+        margin-top: 0.3rem;
+    }
+
+    .score-controls {
+        display: flex;
+        gap: 0.8rem;
+        justify-content: center;
+        margin-top: 1rem;
+    }
+
+    .score-btn {
+        width: 45px;
+        height: 45px;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        color: #00ffff;
+        font-size: 1.2rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .score-btn:hover {
+        background: rgba(0, 255, 255, 0.2);
+        transform: scale(1.05);
+    }
+
+    .score-btn:active {
+        transform: scale(0.95);
+    }
+
+    .custom-score {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    .custom-score input {
+        flex: 1;
+        padding: 0.6rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        border-radius: 8px;
+        color: white;
+        text-align: center;
+    }
+
+    .custom-score button {
+        padding: 0.6rem 1rem;
+        background: linear-gradient(135deg, #2b6eff, #9b4dff);
+        border: none;
+        border-radius: 8px;
+        color: white;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .custom-score button:hover {
+        transform: scale(1.02);
+    }
+
+    .team-stats {
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid rgba(0, 255, 255, 0.1);
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.8rem;
+        color: #99aaff;
+    }
+
+    /* Leaderboard Section */
+    .leaderboard-section {
+        background: rgba(8, 18, 34, 0.6);
+        backdrop-filter: blur(12px);
+        border-radius: 1.5rem;
+        border: 1px solid rgba(0, 255, 255, 0.2);
+        padding: 1.5rem;
+        margin-top: 2rem;
+    }
+
+    .leaderboard-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .leaderboard-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .leaderboard-title i {
+        color: #ffaa33;
+    }
+
+    .leaderboard-table-container {
+        overflow-x: auto;
+    }
+
+    .leaderboard-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .leaderboard-table th {
+        text-align: left;
+        padding: 0.8rem;
+        background: rgba(0, 255, 255, 0.05);
+        color: #00ffff;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+
+    .leaderboard-table td {
+        padding: 0.8rem;
+        border-bottom: 1px solid rgba(0, 255, 255, 0.1);
+        color: #e0e8ff;
+    }
+
+    .leaderboard-table tr:hover {
+        background: rgba(0, 255, 255, 0.05);
+    }
+
+    .rank-1 {
+        color: #ffaa33;
+        font-weight: bold;
+    }
+
+    .rank-2 {
+        color: #c0c0c0;
+        font-weight: bold;
+    }
+
+    .rank-3 {
+        color: #cd7f32;
+        font-weight: bold;
+    }
+
+    .score-update-animation {
+        animation: scoreFlash 0.5s ease;
+    }
+
+    @keyframes scoreFlash {
+        0% { background: rgba(0, 255, 255, 0); }
+        50% { background: rgba(0, 255, 255, 0.3); }
+        100% { background: rgba(0, 255, 255, 0); }
+    }
+
+    /* Live Indicator */
+    .live-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(255, 51, 102, 0.2);
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        border: 1px solid rgba(255, 51, 102, 0.5);
+    }
+
+    .live-dot {
+        width: 8px;
+        height: 8px;
+        background: #ff3366;
+        border-radius: 50%;
+        animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.5; transform: scale(1.2); }
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 4rem;
+        background: rgba(8, 18, 34, 0.6);
+        border-radius: 2rem;
+        border: 1px solid rgba(0, 255, 255, 0.2);
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        color: #00ffff;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    /* Loading */
+    .loading-spinner {
+        text-align: center;
+        padding: 3rem;
+    }
+
+    .loading-spinner i {
+        font-size: 2rem;
+        color: #00ffff;
+    }
+
+    @media (max-width: 768px) {
+        .score-container {
+            padding: 1rem;
+        }
+        
+        .teams-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .team-card-header {
+            flex-direction: column;
+            text-align: center;
+            gap: 0.5rem;
+        }
+        
+        .score-actions {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="score-container">
+    <!-- Page Header -->
+    <div class="page-header" data-aos="fade-up">
+        <div class="page-title">
+            <i class="fas fa-trophy"></i>
+            <span>Score Management</span>
+        </div>
+        <div class="live-indicator">
+            <div class="live-dot"></div>
+            <span>Live Scoring Mode</span>
+        </div>
+    </div>
+
+    <!-- Event Selector -->
+    <div class="event-selector" data-aos="fade-up" data-aos-delay="50">
+        <div class="selector-title">
+            <i class="fas fa-calendar-alt"></i>
+            <span>Select Event</span>
+        </div>
+        <select id="eventSelect" class="event-select" onchange="loadEventScores()">
+            <option value="">-- Choose an event --</option>
+        </select>
+    </div>
+
+    <!-- Scoreboard Content -->
+    <div id="scoreboardContent">
+        <div class="empty-state">
+            <i class="fas fa-chart-line"></i>
+            <h3>No Event Selected</h3>
+            <p>Please select an event to start managing scores</p>
+        </div>
+    </div>
+</div>
+
+<!-- Add Score Modal -->
+<div id="addScoreModal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 400px;">
+        <div class="modal-header">
+            <h3 class="modal-title">
+                <i class="fas fa-plus-circle"></i>
+                <span>Add Score</span>
+            </h3>
+            <button class="modal-close" onclick="closeAddScoreModal()">&times;</button>
+        </div>
+        <div class="form-group">
+            <label>Score Value</label>
+            <input type="number" id="additionalScore" placeholder="Enter score to add" step="0.1">
+        </div>
+        <div class="form-group">
+            <label>Description (Optional)</label>
+            <input type="text" id="scoreDescription" placeholder="Reason for score update">
+        </div>
+        <div class="modal-actions">
+            <button class="btn-primary-modal" onclick="confirmAddScore()">Add Score</button>
+            <button class="btn-secondary-modal" onclick="closeAddScoreModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentEvent = null;
+    let currentTeams = [];
+    let scoreUpdateQueue = [];
+    let autoSaveInterval = null;
+    let wsConnection = null;
+
+    // Fetch events for dropdown
+    async function loadEvents() {
+        try {
+            const response = await fetch('/api/admin/events');
+            const data = await response.json();
+            const events = data.events || getDemoEvents();
+            const eventSelect = document.getElementById('eventSelect');
+            
+            eventSelect.innerHTML = '<option value="">-- Choose an event --</option>' + 
+                events.map(event => `<option value="${event.id}">${escapeHtml(event.name)} (${event.status})</option>`).join('');
+        } catch (error) {
+            console.error('Error loading events:', error);
+            loadDemoEvents();
+        }
+    }
+
+    function loadDemoEvents() {
+        const demoEvents = [
+            { id: 1, name: 'AI Hackathon 2026', status: 'active' },
+            { id: 2, name: 'Robotics Challenge', status: 'active' },
+            { id: 3, name: 'Web3 Summit', status: 'upcoming' }
+        ];
+        const eventSelect = document.getElementById('eventSelect');
+        eventSelect.innerHTML = '<option value="">-- Choose an event --</option>' + 
+            demoEvents.map(event => `<option value="${event.id}">${escapeHtml(event.name)} (${event.status})</option>`).join('');
+    }
+
+    // Load event scores
+    async function loadEventScores() {
+        const eventId = document.getElementById('eventSelect').value;
+        if (!eventId) {
+            document.getElementById('scoreboardContent').innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-chart-line"></i>
+                    <h3>No Event Selected</h3>
+                    <p>Please select an event to start managing scores</p>
+                </div>
+            `;
+            return;
+        }
+
+        showLoading();
+        
+        try {
+            const response = await fetch(`/api/admin/events/${eventId}/scores`);
+            const data = await response.json();
+            currentEvent = data.event || { id: eventId, name: 'Selected Event' };
+            currentTeams = data.teams || getDemoTeams(eventId);
+            renderScoreboard();
+            startAutoSave();
+            connectWebSocket();
+        } catch (error) {
+            console.error('Error loading scores:', error);
+            currentTeams = getDemoTeams(eventId);
+            renderScoreboard();
+        }
+    }
+
+    function getDemoTeams(eventId) {
+        return [
+            { id: 1, name: 'Neural Ninjas', score: 87.5, rank: 1, members: 4, achievements: 3 },
+            { id: 2, name: 'Code Wizards', score: 76.0, rank: 2, members: 4, achievements: 2 },
+            { id: 3, name: 'Quantum Crew', score: 68.5, rank: 3, members: 3, achievements: 2 },
+            { id: 4, name: 'Data Demons', score: 55.0, rank: 4, members: 4, achievements: 1 },
+            { id: 5, name: 'Cyber Sentinels', score: 42.0, rank: 5, members: 3, achievements: 1 }
+        ];
+    }
+
+    function renderScoreboard() {
+        const container = document.getElementById('scoreboardContent');
+        
+        // Sort teams by score
+        const sortedTeams = [...currentTeams].sort((a, b) => b.score - a.score);
+        
+        container.innerHTML = `
+            <div class="scoreboard-header" data-aos="fade-up">
+                <div class="event-info">
+                    <div class="event-info-badge">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>${escapeHtml(currentEvent.name)}</span>
+                    </div>
+                    <div class="event-info-badge">
+                        <i class="fas fa-users"></i>
+                        <span>${currentTeams.length} Teams</span>
+                    </div>
+                    <div class="event-info-badge">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Live Updates</span>
+                    </div>
+                </div>
+                <div class="score-actions">
+                    <button class="btn-glass" onclick="refreshScores()">
+                        <i class="fas fa-sync-alt"></i>
+                        <span>Refresh</span>
+                    </button>
+                    <button class="btn-glass" onclick="exportScores()">
+                        <i class="fas fa-download"></i>
+                        <span>Export</span>
+                    </button>
+                    <button class="btn-glass" onclick="resetAllScores()">
+                        <i class="fas fa-undo-alt"></i>
+                        <span>Reset All</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="teams-grid" data-aos="fade-up" data-aos-delay="100">
+                ${sortedTeams.map((team, index) => `
+                    <div class="team-score-card" id="team-${team.id}">
+                        <div class="team-card-header">
+                            <div class="team-rank">
+                                <i class="fas fa-${index === 0 ? 'crown' : index === 1 ? 'medal' : index === 2 ? 'award' : 'hashtag'}"></i>
+                                <span>#${index + 1}</span>
+                            </div>
+                            <div class="team-name">
+                                <i class="fas fa-users"></i>
+                                <span>${escapeHtml(team.name)}</span>
+                            </div>
+                        </div>
+                        <div class="team-card-body">
+                            <div class="score-display">
+                                <div class="score-value" id="score-${team.id}">${team.score.toFixed(1)}</div>
+                                <div class="score-label">Total Points</div>
+                            </div>
+                            <div class="score-controls">
+                                <button class="score-btn" onclick="updateScore(${team.id}, -10)">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                                <button class="score-btn" onclick="updateScore(${team.id}, -1)">
+                                    <i class="fas fa-minus-circle"></i>
+                                </button>
+                                <button class="score-btn" onclick="openAddScoreModal(${team.id})">
+                                    <i class="fas fa-plus-circle"></i>
+                                </button>
+                                <button class="score-btn" onclick="updateScore(${team.id}, 1)">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                                <button class="score-btn" onclick="updateScore(${team.id}, 10)">
+                                    <i class="fas fa-plus-circle"></i>
+                                    <span style="font-size: 0.8rem;">10</span>
+                                </button>
+                            </div>
+                            <div class="custom-score">
+                                <input type="number" id="custom-score-${team.id}" placeholder="Custom value" step="0.5">
+                                <button onclick="setCustomScore(${team.id})">
+                                    <i class="fas fa-check"></i> Set
+                                </button>
+                            </div>
+                            <div class="team-stats">
+                                <span><i class="fas fa-user-friends"></i> ${team.members || 4} Members</span>
+                                <span><i class="fas fa-award"></i> ${team.achievements || 0} Achievements</span>
+                            </div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+            
+            <div class="leaderboard-section" data-aos="fade-up" data-aos-delay="150">
+                <div class="leaderboard-header">
+                    <div class="leaderboard-title">
+                        <i class="fas fa-chart-simple"></i>
+                        <span>Live Leaderboard</span>
+                    </div>
+                    <button class="btn-glass" onclick="broadcastLeaderboard()">
+                        <i class="fas fa-tv"></i>
+                        <span>Broadcast to Live Scoreboard</span>
+                    </button>
+                </div>
+                <div class="leaderboard-table-container">
+                    <table class="leaderboard-table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Team Name</th>
+                                <th>Score</th>
+                                <th>Performance</th>
+                                <th>Achievements</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${sortedTeams.map((team, index) => `
+                                <tr>
+                                    <td class="rank-${index + 1 === 1 ? '1' : index + 1 === 2 ? '2' : index + 1 === 3 ? '3' : ''}">
+                                        ${index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`}
+                                    </td>
+                                    <td><strong>${escapeHtml(team.name)}</strong></td>
+                                    <td style="font-family: 'Orbitron', monospace; font-weight: bold;">${team.score.toFixed(1)}</td>
+                                    <td>
+                                        <div style="width: 100px; background: rgba(0,255,255,0.2); border-radius: 10px; overflow: hidden;">
+                                            <div style="width: ${Math.min(100, (team.score / Math.max(...sortedTeams.map(t => t.score), 1)) * 100)}%; height: 6px; background: linear-gradient(90deg, #00ffff, #6b2eff);"></div>
+                                        </div>
+                                    </td>
+                                    <td>${'⭐'.repeat(Math.min(5, Math.floor(team.score / 20)))}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+    }
+
+    let pendingTeamId = null;
+    let pendingAddValue = null;
+
+    function openAddScoreModal(teamId) {
+        pendingTeamId = teamId;
+        document.getElementById('addScoreModal').style.display = 'flex';
+        document.getElementById('additionalScore').value = '';
+        document.getElementById('scoreDescription').value = '';
+    }
+
+    function closeAddScoreModal() {
+        document.getElementById('addScoreModal').style.display = 'none';
+        pendingTeamId = null;
+    }
+
+    function confirmAddScore() {
+        const additionalScore = parseFloat(document.getElementById('additionalScore').value);
+        if (isNaN(additionalScore)) {
+            showNotification('Please enter a valid score', 'error');
+            return;
+        }
+        
+        if (pendingTeamId) {
+            updateScore(pendingTeamId, additionalScore);
+            const description = document.getElementById('scoreDescription').value;
+            if (description) {
+                addActivityLog(pendingTeamId, additionalScore, description);
+            }
+            closeAddScoreModal();
+        }
+    }
+
+    function updateScore(teamId, delta) {
+        const team = currentTeams.find(t => t.id === teamId);
+        if (team) {
+            const oldScore = team.score;
+            team.score = Math.max(0, team.score + delta);
+            
+            // Animate score display
+            const scoreElement = document.getElementById(`score-${teamId}`);
+            if (scoreElement) {
+                scoreElement.classList.add('score-update-animation');
+                setTimeout(() => scoreElement.classList.remove('score-update-animation'), 500);
+                scoreElement.textContent = team.score.toFixed(1);
+            }
+            
+            // Animate card
+            const cardElement = document.getElementById(`team-${teamId}`);
+            if (cardElement) {
+                cardElement.style.animation = 'none';
+                setTimeout(() => cardElement.style.animation = 'cardGlow 2s ease-in-out infinite', 10);
+            }
+            
+            // Re-render to update leaderboard and rankings
+            renderScoreboard();
+            
+            // Queue for auto-save
+            queueScoreUpdate(teamId, delta, oldScore);
+            
+            // Broadcast update
+            broadcastScoreUpdate(teamId, team.score);
+            
+            showNotification(`${team.name}: ${delta > 0 ? '+' : ''}${delta} points`, 'success');
+        }
+    }
+
+    function setCustomScore(teamId) {
+        const input = document.getElementById(`custom-score-${teamId}`);
+        const newScore = parseFloat(input.value);
+        if (isNaN(newScore)) {
+            showNotification('Please enter a valid score', 'error');
+            return;
+        }
+        
+        const team = currentTeams.find(t => t.id === teamId);
+        if (team) {
+            const delta = newScore - team.score;
+            team.score = Math.max(0, newScore);
+            
+            const scoreElement = document.getElementById(`score-${teamId}`);
+            if (scoreElement) {
+                scoreElement.classList.add('score-update-animation');
+                setTimeout(() => scoreElement.classList.remove('score-update-animation'), 500);
+                scoreElement.textContent = team.score.toFixed(1);
+            }
+            
+            renderScoreboard();
+            queueScoreUpdate(teamId, delta, team.score - delta);
+            broadcastScoreUpdate(teamId, team.score);
+            showNotification(`${team.name}: Score set to ${team.score}`, 'success');
+            input.value = '';
+        }
+    }
+
+    function queueScoreUpdate(teamId, delta, oldScore) {
+        scoreUpdateQueue.push({
+            teamId,
+            delta,
+            oldScore,
+            timestamp: new Date().toISOString()
+        });
+        
+        // Auto-save every 5 seconds
+        if (autoSaveInterval) clearInterval(autoSaveInterval);
+        autoSaveInterval = setTimeout(saveScoreUpdates, 3000);
+    }
+
+    async function saveScoreUpdates() {
+        if (scoreUpdateQueue.length === 0) return;
+        
+        const updates = [...scoreUpdateQueue];
+        scoreUpdateQueue = [];
+        
+        try {
+            const response = await fetch('/api/admin/scores/batch', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    eventId: currentEvent.id,
+                    updates: updates
+                })
+            });
+            
+            if (response.ok) {
+                console.log('Scores saved successfully');
+            }
+        } catch (error) {
+            console.error('Error saving scores:', error);
+            // Re-queue failed updates
+            scoreUpdateQueue.unshift(...updates);
+        }
+    }
+
+    function startAutoSave() {
+        if (autoSaveInterval) clearInterval(autoSaveInterval);
+        autoSaveInterval = setInterval(saveScoreUpdates, 5000);
+    }
+
+    function connectWebSocket() {
+        // WebSocket connection for real-time updates
+        if (wsConnection) wsConnection.close();
+        
+        try {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            wsConnection = new WebSocket(`${protocol}//${window.location.host}/ws/scores`);
+            
+            wsConnection.onopen = () => {
+                console.log('WebSocket connected for scoring');
+                wsConnection.send(JSON.stringify({
+                    type: 'subscribe',
+                    eventId: currentEvent?.id
+                }));
+            };
+            
+            wsConnection.onerror = (error) => {
+                console.error('WebSocket error:', error);
+            };
+        } catch (error) {
+            console.error('WebSocket connection failed:', error);
+        }
+    }
+
+    function broadcastScoreUpdate(teamId, newScore) {
+        if (wsConnection && wsConnection.readyState === WebSocket.OPEN) {
+            wsConnection.send(JSON.stringify({
+                type: 'score_update',
+                eventId: currentEvent?.id,
+                teamId: teamId,
+                score: newScore,
+                timestamp: new Date().toISOString()
+            }));
+        }
+    }
+
+    function broadcastLeaderboard() {
+        const sortedTeams = [...currentTeams].sort((a, b) => b.score - a.score);
+        if (wsConnection && wsConnection.readyState === WebSocket.OPEN) {
+            wsConnection.send(JSON.stringify({
+                type: 'leaderboard_update',
+                eventId: currentEvent?.id,
+                leaderboard: sortedTeams
+            }));
+        }
+        showNotification('Leaderboard broadcast to live scoreboard', 'success');
+    }
+
+    function addActivityLog(teamId, scoreChange, description) {
+        const team = currentTeams.find(t => t.id === teamId);
+        if (team && description) {
+            console.log(`Activity: ${team.name} - ${description} (${scoreChange > 0 ? '+' : ''}${scoreChange})`);
+        }
+    }
+
+    function refreshScores() {
+        loadEventScores();
+        showNotification('Refreshing scores...', 'info');
+    }
+
+    function exportScores() {
+        const sortedTeams = [...currentTeams].sort((a, b) => b.score - a.score);
+        const exportData = {
+            event: currentEvent,
+            teams: sortedTeams,
+            exportedAt: new Date().toISOString()
+        };
+        
+        const dataStr = JSON.stringify(exportData, null, 2);
+        const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+        const exportFileDefaultName = `scores_${currentEvent.name}_${new Date().toISOString().slice(0,19)}.json`;
+        const linkElement = document.createElement('a');
+        linkElement.setAttribute('href', dataUri);
+        linkElement.setAttribute('download', exportFileDefaultName);
+        linkElement.click();
+        showNotification('Scores exported successfully', 'success');
+    }
+
+    function resetAllScores() {
+        if (confirm('WARNING: This will reset all scores to zero. This action cannot be undone. Continue?')) {
+            currentTeams.forEach(team => {
+                team.score = 0;
+            });
+            renderScoreboard();
+            queueScoreUpdate('all', 0, 0);
+            showNotification('All scores have been reset', 'warning');
+        }
+    }
+
+    function showLoading() {
+        document.getElementById('scoreboardContent').innerHTML = `
+            <div class="loading-spinner">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Loading scores...</p>
+            </div>
+        `;
+    }
+
+    function showNotification(message, type) {
+        const flashContainer = document.querySelector('.flash-container');
+        if (flashContainer) {
+            const notification = document.createElement('div');
+            notification.className = `flash-message flash-${type}`;
+            notification.innerHTML = `
+                <div class="flash-icon">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                </div>
+                <div class="flash-content">
+                    <span>${message}</span>
+                </div>
+                <button class="flash-close">&times;</button>
+                <div class="flash-progress"></div>
+            `;
+            flashContainer.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.5s ease forwards';
+                setTimeout(() => notification.remove(), 500);
+            }, 5000);
+            
+            notification.querySelector('.flash-close').addEventListener('click', () => {
+                notification.style.animation = 'slideOut 0.3s ease forwards';
+                setTimeout(() => notification.remove(), 300);
+            });
+        }
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    // Initialize
+    loadEvents();
+
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', () => {
+        if (autoSaveInterval) clearInterval(autoSaveInterval);
+        if (wsConnection) wsConnection.close();
+        saveScoreUpdates();
+    });
+</script>
+
+<style>
+    .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(10px);
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .modal[style*="display: flex"] {
+        display: flex !important;
+    }
+    
+    .modal-content {
+        background: rgba(8, 18, 34, 0.95);
+        backdrop-filter: blur(20px);
+        border-radius: 2rem;
+        padding: 2rem;
+        max-width: 500px;
+        width: 90%;
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        animation: modalSlideIn 0.3s ease;
+    }
+    
+    @keyframes modalSlideIn {
+        from {
+            transform: translateY(-50px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+    
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+    }
+    
+    .modal-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        font-family: 'Orbitron', monospace;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .modal-close {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        color: #fff;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .modal-close:hover {
+        color: #ff3366;
+        transform: rotate(90deg);
+    }
+    
+    .form-group {
+        margin-bottom: 1rem;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: #00ffff;
+        font-size: 0.85rem;
+    }
+    
+    .form-group input {
+        width: 100%;
+        padding: 0.8rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        border-radius: 12px;
+        color: white;
+        font-family: inherit;
+    }
+    
+    .form-group input:focus {
+        outline: none;
+        border-color: #00ffff;
+    }
+    
+    .modal-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+    
+    .btn-primary-modal {
+        flex: 1;
+        padding: 0.8rem;
+        background: linear-gradient(135deg, #2b6eff, #9b4dff);
+        border: none;
+        border-radius: 40px;
+        color: white;
+        cursor: pointer;
+        font-weight: 600;
+    }
+    
+    .btn-secondary-modal {
+        flex: 1;
+        padding: 0.8rem;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        border-radius: 40px;
+        color: white;
+        cursor: pointer;
+    }
+</style>
+{% endblock %}  

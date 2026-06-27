@@ -1,0 +1,1039 @@
+{% extends "base.html" %}
+
+{% block title %}Live Scoreboard - EventX Neural Scoreboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Live Scoreboard Specific Styles */
+    .scoreboard-container {
+        padding: 2rem;
+        max-width: 1600px;
+        margin: 0 auto;
+    }
+
+    /* Hero Section */
+    .scoreboard-hero {
+        margin-bottom: 2rem;
+        padding: 2rem;
+        background: linear-gradient(135deg, rgba(43, 110, 255, 0.15), rgba(155, 77, 255, 0.15));
+        border-radius: 2rem;
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        position: relative;
+        overflow: hidden;
+        text-align: center;
+    }
+
+    .scoreboard-hero::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(0, 255, 255, 0.1), transparent);
+        animation: rotate 20s linear infinite;
+    }
+
+    @keyframes rotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    .scoreboard-hero-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .live-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(255, 51, 102, 0.2);
+        padding: 0.4rem 1rem;
+        border-radius: 40px;
+        margin-bottom: 1rem;
+        border: 1px solid rgba(255, 51, 102, 0.5);
+    }
+
+    .live-dot {
+        width: 10px;
+        height: 10px;
+        background: #ff3366;
+        border-radius: 50%;
+        animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.5; transform: scale(1.2); }
+    }
+
+    .scoreboard-title {
+        font-size: 2.5rem;
+        font-weight: 800;
+        font-family: 'Orbitron', monospace;
+        margin-bottom: 0.5rem;
+    }
+
+    .scoreboard-title .gradient-text {
+        background: linear-gradient(135deg, #00ffff, #6b2eff);
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+    }
+
+    .scoreboard-subtitle {
+        color: #99aaff;
+        font-size: 1rem;
+    }
+
+    /* Event Selector */
+    .event-selector-card {
+        background: rgba(8, 18, 34, 0.6);
+        backdrop-filter: blur(12px);
+        border-radius: 1.5rem;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        border: 1px solid rgba(0, 255, 255, 0.2);
+    }
+
+    .selector-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .selector-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #00ffff;
+    }
+
+    .event-stats {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .event-stat-chip {
+        background: rgba(0, 0, 0, 0.3);
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .event-select {
+        width: 100%;
+        padding: 0.8rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        border-radius: 12px;
+        color: white;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .event-select:focus {
+        outline: none;
+        border-color: #00ffff;
+        box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: rgba(8, 18, 34, 0.6);
+        backdrop-filter: blur(12px);
+        border-radius: 1rem;
+        padding: 1rem;
+        text-align: center;
+        border: 1px solid rgba(0, 255, 255, 0.2);
+        transition: all 0.3s;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-3px);
+        border-color: #00ffff;
+    }
+
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 800;
+        font-family: 'Orbitron', monospace;
+        color: #00ffff;
+    }
+
+    .stat-label {
+        font-size: 0.8rem;
+        color: #99aaff;
+        margin-top: 0.3rem;
+    }
+
+    /* Podium Section */
+    .podium-section {
+        margin-bottom: 2rem;
+        display: none;
+    }
+
+    .podium-section.active {
+        display: block;
+    }
+
+    .podium {
+        display: flex;
+        justify-content: center;
+        align-items: flex-end;
+        gap: 2rem;
+        flex-wrap: wrap;
+        padding: 2rem;
+        background: rgba(8, 18, 34, 0.4);
+        border-radius: 2rem;
+    }
+
+    .podium-card {
+        text-align: center;
+        transition: all 0.3s;
+        cursor: pointer;
+    }
+
+    .podium-card:hover {
+        transform: translateY(-10px);
+    }
+
+    .podium-rank {
+        font-size: 1.5rem;
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+    }
+
+    .podium-avatar {
+        width: 100px;
+        height: 100px;
+        background: linear-gradient(135deg, #2b6eff, #9b4dff);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+        border: 3px solid #00ffff;
+        box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
+    }
+
+    .podium-avatar i {
+        font-size: 3rem;
+        color: white;
+    }
+
+    .podium-name {
+        font-size: 1.2rem;
+        font-weight: 700;
+        margin-bottom: 0.3rem;
+    }
+
+    .podium-score {
+        font-size: 1.5rem;
+        font-family: 'Orbitron', monospace;
+        color: #00ffff;
+    }
+
+    .first-place {
+        transform: scale(1.1);
+    }
+
+    .first-place .podium-avatar {
+        width: 120px;
+        height: 120px;
+        border-color: #ffaa33;
+        box-shadow: 0 0 40px rgba(255, 170, 51, 0.5);
+    }
+
+    .first-place .podium-rank {
+        color: #ffaa33;
+    }
+
+    /* Leaderboard Table */
+    .leaderboard-card {
+        background: rgba(8, 18, 34, 0.6);
+        backdrop-filter: blur(12px);
+        border-radius: 1.5rem;
+        border: 1px solid rgba(0, 255, 255, 0.2);
+        overflow: hidden;
+    }
+
+    .leaderboard-header {
+        padding: 1.2rem 1.5rem;
+        background: linear-gradient(135deg, rgba(43, 110, 255, 0.1), rgba(155, 77, 255, 0.1));
+        border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .leaderboard-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .refresh-indicator {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.8rem;
+        color: #99aaff;
+    }
+
+    .refresh-indicator i {
+        animation: spin 1s linear infinite;
+        display: none;
+    }
+
+    .refresh-indicator.updating i {
+        display: inline-block;
+    }
+
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    .leaderboard-table-container {
+        overflow-x: auto;
+    }
+
+    .leaderboard-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .leaderboard-table th {
+        text-align: left;
+        padding: 1rem 1.5rem;
+        background: rgba(0, 255, 255, 0.05);
+        color: #00ffff;
+        font-weight: 600;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .leaderboard-table td {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid rgba(0, 255, 255, 0.1);
+        color: #e0e8ff;
+        transition: all 0.3s;
+    }
+
+    .leaderboard-table tr {
+        transition: all 0.3s;
+    }
+
+    .leaderboard-table tr:hover {
+        background: rgba(0, 255, 255, 0.05);
+    }
+
+    .leaderboard-table tr.score-updated {
+        animation: rowHighlight 1s ease;
+    }
+
+    @keyframes rowHighlight {
+        0% { background: rgba(0, 255, 255, 0); }
+        50% { background: rgba(0, 255, 255, 0.3); }
+        100% { background: rgba(0, 255, 255, 0); }
+    }
+
+    .rank-cell {
+        font-weight: bold;
+        width: 60px;
+    }
+
+    .rank-1 { color: #ffaa33; }
+    .rank-2 { color: #c0c0c0; }
+    .rank-3 { color: #cd7f32; }
+
+    .team-cell {
+        font-weight: 600;
+    }
+
+    .score-cell {
+        font-family: 'Orbitron', monospace;
+        font-weight: bold;
+        font-size: 1.1rem;
+        color: #00ffff;
+    }
+
+    .score-change {
+        margin-left: 0.5rem;
+        font-size: 0.7rem;
+        animation: fadeInOut 1s ease;
+    }
+
+    .score-change.positive {
+        color: #00ff88;
+    }
+
+    .score-change.negative {
+        color: #ff3366;
+    }
+
+    @keyframes fadeInOut {
+        0% { opacity: 0; transform: translateX(-10px); }
+        20% { opacity: 1; transform: translateX(0); }
+        80% { opacity: 1; transform: translateX(0); }
+        100% { opacity: 0; transform: translateX(10px); }
+    }
+
+    .progress-bar-container {
+        width: 150px;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .progress-bar {
+        height: 6px;
+        background: linear-gradient(90deg, #00ffff, #6b2eff);
+        border-radius: 10px;
+        transition: width 0.5s ease;
+    }
+
+    /* Chart Section */
+    .chart-section {
+        margin-top: 2rem;
+        display: none;
+    }
+
+    .chart-section.active {
+        display: block;
+    }
+
+    .chart-card {
+        background: rgba(8, 18, 34, 0.6);
+        backdrop-filter: blur(12px);
+        border-radius: 1.5rem;
+        padding: 1.5rem;
+        border: 1px solid rgba(0, 255, 255, 0.2);
+    }
+
+    .chart-title {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #00ffff;
+    }
+
+    canvas {
+        max-height: 300px;
+        width: 100%;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 4rem;
+        background: rgba(8, 18, 34, 0.6);
+        border-radius: 2rem;
+        border: 1px solid rgba(0, 255, 255, 0.2);
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        color: #00ffff;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    /* Loading */
+    .loading-spinner {
+        text-align: center;
+        padding: 3rem;
+    }
+
+    .loading-spinner i {
+        font-size: 2rem;
+        color: #00ffff;
+    }
+
+    @media (max-width: 768px) {
+        .scoreboard-container {
+            padding: 1rem;
+        }
+        
+        .podium {
+            gap: 1rem;
+        }
+        
+        .podium-avatar {
+            width: 70px;
+            height: 70px;
+        }
+        
+        .first-place .podium-avatar {
+            width: 85px;
+            height: 85px;
+        }
+        
+        .leaderboard-table th,
+        .leaderboard-table td {
+            padding: 0.8rem;
+            font-size: 0.8rem;
+        }
+        
+        .progress-bar-container {
+            width: 80px;
+        }
+        
+        .score-cell {
+            font-size: 0.9rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="scoreboard-container">
+    <!-- Hero Section -->
+    <div class="scoreboard-hero" data-aos="fade-up">
+        <div class="scoreboard-hero-content">
+            <div class="live-badge">
+                <div class="live-dot"></div>
+                <span>LIVE SCOREBOARD</span>
+                <i class="fas fa-broadcast-tower"></i>
+            </div>
+            <h1 class="scoreboard-title">
+                Neural <span class="gradient-text">Scoreboard</span>
+            </h1>
+            <p class="scoreboard-subtitle">
+                Real-time rankings, live updates, and performance analytics
+            </p>
+        </div>
+    </div>
+
+    <!-- Event Selector -->
+    <div class="event-selector-card" data-aos="fade-up" data-aos-delay="50">
+        <div class="selector-header">
+            <div class="selector-title">
+                <i class="fas fa-calendar-alt"></i>
+                <span>Active Event</span>
+            </div>
+            <div class="event-stats" id="eventStats">
+                <div class="event-stat-chip">
+                    <i class="fas fa-users"></i>
+                    <span id="totalTeamsCount">0 Teams</span>
+                </div>
+                <div class="event-stat-chip">
+                    <i class="fas fa-chart-line"></i>
+                    <span id="topScore">Top: 0</span>
+                </div>
+            </div>
+        </div>
+        <div class="event-select-wrapper">
+            <select id="eventSelect" class="event-select" onchange="loadScoreboard()">
+                <option value="">-- Select an event --</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid" id="statsGrid" style="display: none;" data-aos="fade-up" data-aos-delay="100">
+        <div class="stat-card">
+            <div class="stat-value" id="statTeams">0</div>
+            <div class="stat-label">Participating Teams</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="statAvgScore">0</div>
+            <div class="stat-label">Average Score</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="statHighest">0</div>
+            <div class="stat-label">Highest Score</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="statLastUpdate">--</div>
+            <div class="stat-label">Last Update</div>
+        </div>
+    </div>
+
+    <!-- Podium Section -->
+    <div id="podiumSection" class="podium-section" data-aos="fade-up" data-aos-delay="150">
+        <div class="podium" id="podium"></div>
+    </div>
+
+    <!-- Leaderboard Table -->
+    <div class="leaderboard-card" id="leaderboardCard" style="display: none;" data-aos="fade-up" data-aos-delay="200">
+        <div class="leaderboard-header">
+            <div class="leaderboard-title">
+                <i class="fas fa-chart-line"></i>
+                <span>Live Rankings</span>
+            </div>
+            <div class="refresh-indicator" id="refreshIndicator">
+                <i class="fas fa-sync-alt"></i>
+                <span>Auto-updating</span>
+            </div>
+        </div>
+        <div class="leaderboard-table-container">
+            <table class="leaderboard-table">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Team</th>
+                        <th>Project</th>
+                        <th>Score</th>
+                        <th>Performance</th>
+                        <th>Trend</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboardBody">
+                    <tr>
+                        <td colspan="6" style="text-align: center;">
+                            <div class="loading-spinner">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                <span>Loading scoreboard...</span>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Chart Section -->
+    <div id="chartSection" class="chart-section" data-aos="fade-up" data-aos-delay="250">
+        <div class="chart-card">
+            <div class="chart-title">
+                <i class="fas fa-chart-bar"></i>
+                <span>Score Distribution</span>
+            </div>
+            <canvas id="scoreChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+    let currentEvent = null;
+    let scoreboardData = [];
+    let previousScores = {};
+    let wsConnection = null;
+    let updateInterval = null;
+    let scoreChart = null;
+
+    // Load available events
+    async function loadEvents() {
+        try {
+            const response = await fetch('/api/events/active');
+            const data = await response.json();
+            const events = data.events || getDemoEvents();
+            const eventSelect = document.getElementById('eventSelect');
+            
+            eventSelect.innerHTML = '<option value="">-- Select an event --</option>' + 
+                events.map(event => `<option value="${event.id}">${escapeHtml(event.name)} (${event.status})</option>`).join('');
+        } catch (error) {
+            console.error('Error loading events:', error);
+            loadDemoEvents();
+        }
+    }
+
+    function getDemoEvents() {
+        return [
+            { id: 1, name: 'AI Hackathon 2026', status: 'active' },
+            { id: 2, name: 'Robotics Challenge', status: 'active' },
+            { id: 3, name: 'Web3 Innovation Summit', status: 'upcoming' }
+        ];
+    }
+
+    function loadDemoEvents() {
+        const events = getDemoEvents();
+        const eventSelect = document.getElementById('eventSelect');
+        eventSelect.innerHTML = '<option value="">-- Select an event --</option>' + 
+            events.map(event => `<option value="${event.id}">${escapeHtml(event.name)} (${event.status})</option>`).join('');
+    }
+
+    // Load scoreboard data
+    async function loadScoreboard() {
+        const eventId = document.getElementById('eventSelect').value;
+        if (!eventId) {
+            resetScoreboard();
+            return;
+        }
+
+        showLoading();
+        
+        try {
+            const response = await fetch(`/api/events/${eventId}/scoreboard`);
+            const data = await response.json();
+            currentEvent = { id: eventId, name: data.event_name || 'Selected Event' };
+            scoreboardData = data.teams || getDemoScoreboard();
+            
+            // Store previous scores for change detection
+            scoreboardData.forEach(team => {
+                if (previousScores[team.id] === undefined) {
+                    previousScores[team.id] = team.score;
+                }
+            });
+            
+            updateUI();
+            startAutoRefresh();
+            connectWebSocket();
+            
+            document.getElementById('statsGrid').style.display = 'grid';
+            document.getElementById('leaderboardCard').style.display = 'block';
+            document.getElementById('chartSection').classList.add('active');
+        } catch (error) {
+            console.error('Error loading scoreboard:', error);
+            scoreboardData = getDemoScoreboard();
+            updateUI();
+            document.getElementById('statsGrid').style.display = 'grid';
+            document.getElementById('leaderboardCard').style.display = 'block';
+            document.getElementById('chartSection').classList.add('active');
+        }
+    }
+
+    function getDemoScoreboard() {
+        return [
+            { id: 1, name: 'Neural Ninjas', project: 'AI-Powered Analytics Platform', score: 94.5, trend: '+2.5', previousScore: 92.0 },
+            { id: 2, name: 'Code Wizards', project: 'Blockchain Authentication', score: 87.0, trend: '+1.0', previousScore: 86.0 },
+            { id: 3, name: 'Quantum Crew', project: 'Quantum Computing Simulator', score: 82.5, trend: '+3.0', previousScore: 79.5 },
+            { id: 4, name: 'Data Demons', project: 'Real-time Data Viz', score: 76.0, trend: '-2.0', previousScore: 78.0 },
+            { id: 5, name: 'Cyber Sentinels', project: 'Threat Detection System', score: 71.5, trend: '+1.5', previousScore: 70.0 },
+            { id: 6, name: 'Innovation Labs', project: 'Smart Contract Platform', score: 68.0, trend: '+0.5', previousScore: 67.5 },
+            { id: 7, name: 'Tech Titans', project: 'IoT Framework', score: 63.0, trend: '-1.0', previousScore: 64.0 },
+            { id: 8, name: 'Digital Pioneers', project: 'AR/VR Experience', score: 59.5, trend: '+2.0', previousScore: 57.5 }
+        ];
+    }
+
+    function updateUI() {
+        updateStats();
+        renderPodium();
+        renderLeaderboard();
+        updateChart();
+        updateEventStats();
+    }
+
+    function updateStats() {
+        const totalTeams = scoreboardData.length;
+        const avgScore = scoreboardData.reduce((sum, t) => sum + t.score, 0) / totalTeams;
+        const highestScore = Math.max(...scoreboardData.map(t => t.score));
+        const lastUpdate = new Date().toLocaleTimeString();
+        
+        document.getElementById('statTeams').textContent = totalTeams;
+        document.getElementById('statAvgScore').textContent = avgScore.toFixed(1);
+        document.getElementById('statHighest').textContent = highestScore.toFixed(1);
+        document.getElementById('statLastUpdate').textContent = lastUpdate;
+    }
+
+    function updateEventStats() {
+        document.getElementById('totalTeamsCount').textContent = `${scoreboardData.length} Teams`;
+        const topScore = Math.max(...scoreboardData.map(t => t.score));
+        document.getElementById('topScore').textContent = `Top: ${topScore.toFixed(1)}`;
+    }
+
+    function renderPodium() {
+        const sortedTeams = [...scoreboardData].sort((a, b) => b.score - a.score);
+        const top3 = sortedTeams.slice(0, 3);
+        const podiumContainer = document.getElementById('podium');
+        const podiumSection = document.getElementById('podiumSection');
+        
+        if (top3.length === 0) {
+            podiumSection.classList.remove('active');
+            return;
+        }
+        
+        podiumSection.classList.add('active');
+        
+        // Reorder for podium display: 2nd, 1st, 3rd
+        const podiumOrder = [top3[1], top3[0], top3[2]].filter(t => t);
+        
+        podiumContainer.innerHTML = podiumOrder.map((team, idx) => {
+            let position = '';
+            let rankClass = '';
+            if (team.id === top3[0]?.id) {
+                position = '🥇';
+                rankClass = 'first-place';
+            } else if (team.id === top3[1]?.id) {
+                position = '🥈';
+            } else {
+                position = '🥉';
+            }
+            
+            return `
+                <div class="podium-card ${rankClass}">
+                    <div class="podium-rank">${position}</div>
+                    <div class="podium-avatar">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <div class="podium-name">${escapeHtml(team.name)}</div>
+                    <div class="podium-score">${team.score.toFixed(1)}</div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function renderLeaderboard() {
+        const sortedTeams = [...scoreboardData].sort((a, b) => b.score - a.score);
+        const tbody = document.getElementById('leaderboardBody');
+        
+        tbody.innerHTML = sortedTeams.map((team, index) => {
+            const rankClass = index === 0 ? 'rank-1' : index === 1 ? 'rank-2' : index === 2 ? 'rank-3' : '';
+            const scoreChange = team.score - (previousScores[team.id] || team.score);
+            const changeClass = scoreChange > 0 ? 'positive' : scoreChange < 0 ? 'negative' : '';
+            const changeSymbol = scoreChange > 0 ? `+${scoreChange.toFixed(1)}` : scoreChange < 0 ? `${scoreChange.toFixed(1)}` : '';
+            const progressPercent = (team.score / 100) * 100;
+            
+            return `
+                <tr id="team-row-${team.id}" data-score="${team.score}">
+                    <td class="rank-cell ${rankClass}">
+                        ${index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`}
+                    </td>
+                    <td class="team-cell">
+                        <i class="fas fa-users"></i> ${escapeHtml(team.name)}
+                    </td>
+                    <td>${escapeHtml(team.project || '—')}</td>
+                    <td class="score-cell">
+                        ${team.score.toFixed(1)}
+                        ${changeSymbol ? `<span class="score-change ${changeClass}">${changeSymbol}</span>` : ''}
+                    </td>
+                    <td>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar" style="width: ${progressPercent}%"></div>
+                        </div>
+                    </td>
+                    <td>
+                        ${scoreChange > 0 ? '<i class="fas fa-arrow-up" style="color: #00ff88;"></i>' : 
+                          scoreChange < 0 ? '<i class="fas fa-arrow-down" style="color: #ff3366;"></i>' : 
+                          '<i class="fas fa-minus" style="color: #99aaff;"></i>'}
+                    </td>
+                </tr>
+            `;
+        }).join('');
+        
+        // Animate rows with score changes
+        sortedTeams.forEach((team, index) => {
+            const scoreChange = team.score - (previousScores[team.id] || team.score);
+            if (Math.abs(scoreChange) > 0.01) {
+                const row = document.getElementById(`team-row-${team.id}`);
+                if (row) {
+                    row.classList.add('score-updated');
+                    setTimeout(() => row.classList.remove('score-updated'), 1000);
+                }
+            }
+        });
+        
+        // Update previous scores
+        scoreboardData.forEach(team => {
+            previousScores[team.id] = team.score;
+        });
+    }
+
+    function updateChart() {
+        const ctx = document.getElementById('scoreChart').getContext('2d');
+        const sortedTeams = [...scoreboardData].sort((a, b) => b.score - a.score);
+        const top10 = sortedTeams.slice(0, 10);
+        
+        if (scoreChart) {
+            scoreChart.destroy();
+        }
+        
+        scoreChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: top10.map(t => t.name.length > 15 ? t.name.substring(0, 12) + '...' : t.name),
+                datasets: [{
+                    label: 'Score',
+                    data: top10.map(t => t.score),
+                    backgroundColor: 'rgba(0, 255, 255, 0.6)',
+                    borderColor: '#00ffff',
+                    borderWidth: 1,
+                    borderRadius: 8,
+                    barPercentage: 0.7
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        labels: { color: '#e0e8ff' }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `Score: ${context.raw.toFixed(1)}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        grid: { color: 'rgba(0, 255, 255, 0.1)' },
+                        ticks: { color: '#e0e8ff' }
+                    },
+                    x: {
+                        grid: { color: 'rgba(0, 255, 255, 0.1)' },
+                        ticks: { color: '#e0e8ff', rotation: 45, maxRotation: 45 }
+                    }
+                }
+            }
+        });
+    }
+
+    // WebSocket for real-time updates
+    function connectWebSocket() {
+        if (wsConnection) {
+            wsConnection.close();
+        }
+        
+        try {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            wsConnection = new WebSocket(`${protocol}//${window.location.host}/ws/scoreboard`);
+            
+            wsConnection.onopen = () => {
+                console.log('WebSocket connected for live scoreboard');
+                if (currentEvent) {
+                    wsConnection.send(JSON.stringify({
+                        type: 'subscribe',
+                        eventId: currentEvent.id
+                    }));
+                }
+            };
+            
+            wsConnection.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                if (data.type === 'score_update' && data.eventId === currentEvent?.id) {
+                    handleScoreUpdate(data);
+                } else if (data.type === 'leaderboard_update') {
+                    handleLeaderboardUpdate(data);
+                }
+            };
+            
+            wsConnection.onerror = (error) => {
+                console.error('WebSocket error:', error);
+            };
+        } catch (error) {
+            console.error('WebSocket connection failed:', error);
+        }
+    }
+    
+    function handleScoreUpdate(data) {
+        const teamIndex = scoreboardData.findIndex(t => t.id === data.teamId);
+        if (teamIndex !== -1) {
+            scoreboardData[teamIndex].score = data.score;
+            updateUI();
+        }
+    }
+    
+    function handleLeaderboardUpdate(data) {
+        if (data.leaderboard) {
+            scoreboardData = data.leaderboard;
+            updateUI();
+        }
+    }
+    
+    // Auto-refresh fallback
+    function startAutoRefresh() {
+        if (updateInterval) clearInterval(updateInterval);
+        updateInterval = setInterval(() => {
+            if (!wsConnection || wsConnection.readyState !== WebSocket.OPEN) {
+                refreshScoreboard();
+            }
+        }, 10000);
+    }
+    
+    async function refreshScoreboard() {
+        if (!currentEvent) return;
+        
+        const indicator = document.getElementById('refreshIndicator');
+        indicator.classList.add('updating');
+        
+        try {
+            const response = await fetch(`/api/events/${currentEvent.id}/scoreboard`);
+            const data = await response.json();
+            scoreboardData = data.teams || scoreboardData;
+            updateUI();
+        } catch (error) {
+            console.error('Error refreshing scoreboard:', error);
+        }
+        
+        setTimeout(() => {
+            indicator.classList.remove('updating');
+        }, 500);
+    }
+    
+    function resetScoreboard() {
+        document.getElementById('statsGrid').style.display = 'none';
+        document.getElementById('leaderboardCard').style.display = 'none';
+        document.getElementById('podiumSection').classList.remove('active');
+        document.getElementById('chartSection').classList.remove('active');
+        document.getElementById('eventStats').innerHTML = `
+            <div class="event-stat-chip">
+                <i class="fas fa-users"></i>
+                <span>0 Teams</span>
+            </div>
+            <div class="event-stat-chip">
+                <i class="fas fa-chart-line"></i>
+                <span>Top: 0</span>
+            </div>
+        `;
+        
+        if (updateInterval) clearInterval(updateInterval);
+        if (wsConnection) wsConnection.close();
+    }
+    
+    function showLoading() {
+        document.getElementById('leaderboardBody').innerHTML = `
+            <tr>
+                <td colspan="6" style="text-align: center;">
+                    <div class="loading-spinner">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <span>Loading scoreboard...</span>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }
+    
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+    
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', () => {
+        if (updateInterval) clearInterval(updateInterval);
+        if (wsConnection) wsConnection.close();
+    });
+    
+    // Initialize
+    loadEvents();
+</script>
+{% endblock %}

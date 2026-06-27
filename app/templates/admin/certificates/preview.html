@@ -1,0 +1,872 @@
+{% extends "base.html" %}
+
+{% block title %}Preview Certificate - EventX Neural Certificates{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Preview Page Styles */
+    .preview-container {
+        padding: 2rem;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    /* Header */
+    .preview-header {
+        margin-bottom: 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .preview-title {
+        font-size: 2rem;
+        font-weight: 800;
+        font-family: 'Orbitron', monospace;
+        background: linear-gradient(135deg, #fff, #00ffff);
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+    }
+
+    .team-selector {
+        background: rgba(8, 18, 34, 0.6);
+        backdrop-filter: blur(12px);
+        border-radius: 1rem;
+        padding: 1rem;
+        border: 1px solid rgba(0, 255, 255, 0.2);
+    }
+
+    .team-select {
+        padding: 0.6rem 1rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        border-radius: 8px;
+        color: white;
+        font-size: 1rem;
+        cursor: pointer;
+        min-width: 250px;
+    }
+
+    /* Certificate Preview */
+    .certificate-preview {
+        background: rgba(8, 18, 34, 0.6);
+        backdrop-filter: blur(12px);
+        border-radius: 1.5rem;
+        border: 1px solid rgba(0, 255, 255, 0.2);
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .preview-controls {
+        padding: 1rem 1.5rem;
+        background: linear-gradient(135deg, rgba(43, 110, 255, 0.1), rgba(155, 77, 255, 0.1));
+        border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .control-group {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .control-btn {
+        padding: 0.5rem 1rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        border-radius: 8px;
+        color: #99aaff;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .control-btn:hover {
+        background: rgba(0, 255, 255, 0.1);
+        color: #00ffff;
+    }
+
+    .control-btn.active {
+        background: linear-gradient(135deg, #2b6eff, #9b4dff);
+        color: white;
+        border-color: transparent;
+    }
+
+    /* Certificate Display */
+    .certificate-display {
+        padding: 2rem;
+        display: flex;
+        justify-content: center;
+        min-height: 600px;
+        background: #1a1a2e;
+    }
+
+    .certificate-frame {
+        max-width: 900px;
+        width: 100%;
+        background: white;
+        border-radius: 1rem;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+        position: relative;
+        transition: transform 0.3s;
+    }
+
+    .certificate-frame:hover {
+        transform: scale(1.02);
+    }
+
+    /* Certificate Content */
+    .certificate-content {
+        position: relative;
+        padding: 3rem;
+        background: white;
+        min-height: 600px;
+    }
+
+    .certificate-border {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        right: 20px;
+        bottom: 20px;
+        border: 2px solid #2b6eff;
+        pointer-events: none;
+    }
+
+    .certificate-badge {
+        position: absolute;
+        top: 40px;
+        right: 40px;
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, #ffaa33, #ff8800);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        box-shadow: 0 5px 20px rgba(255, 170, 51, 0.3);
+    }
+
+    .certificate-title {
+        text-align: center;
+        margin-top: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .certificate-title h1 {
+        font-size: 2.5rem;
+        color: #2b6eff;
+        font-family: 'Orbitron', monospace;
+        margin-bottom: 0.5rem;
+    }
+
+    .certificate-title p {
+        color: #666;
+        font-size: 1rem;
+    }
+
+    .certificate-recipient {
+        text-align: center;
+        margin: 2rem 0;
+    }
+
+    .recipient-label {
+        font-size: 1rem;
+        color: #666;
+        letter-spacing: 2px;
+    }
+
+    .recipient-name {
+        font-size: 3rem;
+        font-family: 'GreatVibes', cursive;
+        color: #6b2eff;
+        margin: 0.5rem 0;
+        border-bottom: 2px dashed #ddd;
+        display: inline-block;
+        padding: 0 1rem;
+    }
+
+    .certificate-details {
+        text-align: center;
+        margin: 2rem 0;
+    }
+
+    .event-name {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #333;
+        margin: 1rem 0;
+    }
+
+    .achievement-text {
+        font-size: 1.1rem;
+        color: #555;
+        margin: 1rem 0;
+    }
+
+    .rank-badge {
+        display: inline-block;
+        padding: 0.5rem 1.5rem;
+        background: linear-gradient(135deg, #ffaa33, #ff8800);
+        border-radius: 40px;
+        color: white;
+        font-weight: bold;
+        margin: 1rem 0;
+    }
+
+    .score-display {
+        font-size: 1.2rem;
+        color: #2b6eff;
+        font-family: 'Orbitron', monospace;
+        margin: 0.5rem 0;
+    }
+
+    .certificate-footer {
+        position: absolute;
+        bottom: 40px;
+        left: 40px;
+        right: 40px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+    }
+
+    .signature {
+        text-align: center;
+    }
+
+    .signature-line {
+        width: 200px;
+        border-top: 1px solid #333;
+        margin-bottom: 0.5rem;
+    }
+
+    .signature-name {
+        font-size: 0.9rem;
+        color: #666;
+    }
+
+    .certificate-date {
+        text-align: center;
+        font-size: 0.8rem;
+        color: #999;
+    }
+
+    .qr-code {
+        text-align: center;
+    }
+
+    .qr-placeholder {
+        width: 80px;
+        height: 80px;
+        background: #f0f0f0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 0.5rem;
+    }
+
+    /* Customization Panel */
+    .customization-panel {
+        background: rgba(8, 18, 34, 0.6);
+        backdrop-filter: blur(12px);
+        border-radius: 1.5rem;
+        border: 1px solid rgba(0, 255, 255, 0.2);
+        padding: 1.5rem;
+    }
+
+    .customization-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #00ffff;
+    }
+
+    .customization-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+    }
+
+    .custom-field {
+        margin-bottom: 1rem;
+    }
+
+    .custom-field label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: #99aaff;
+        font-size: 0.85rem;
+    }
+
+    .custom-field input,
+    .custom-field select,
+    .custom-field textarea {
+        width: 100%;
+        padding: 0.6rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        border-radius: 8px;
+        color: white;
+        font-family: inherit;
+    }
+
+    .custom-field input:focus,
+    .custom-field select:focus,
+    .custom-field textarea:focus {
+        outline: none;
+        border-color: #00ffff;
+    }
+
+    .color-preview {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        cursor: pointer;
+    }
+
+    /* Action Buttons */
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        margin-top: 2rem;
+    }
+
+    .btn-primary-large {
+        padding: 1rem 2rem;
+        background: linear-gradient(135deg, #2b6eff, #9b4dff);
+        border: none;
+        border-radius: 40px;
+        color: white;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-primary-large:hover {
+        transform: scale(1.02);
+        box-shadow: 0 5px 20px rgba(43, 110, 255, 0.4);
+    }
+
+    @media (max-width: 768px) {
+        .preview-container {
+            padding: 1rem;
+        }
+        
+        .certificate-content {
+            padding: 1.5rem;
+        }
+        
+        .recipient-name {
+            font-size: 2rem;
+        }
+        
+        .certificate-title h1 {
+            font-size: 1.5rem;
+        }
+        
+        .signature-line {
+            width: 120px;
+        }
+        
+        .certificate-badge {
+            width: 50px;
+            height: 50px;
+            font-size: 1.2rem;
+            top: 20px;
+            right: 20px;
+        }
+    }
+
+    @media print {
+        .preview-header,
+        .preview-controls,
+        .customization-panel,
+        .action-buttons,
+        .team-selector {
+            display: none;
+        }
+        
+        .certificate-preview {
+            background: none;
+            border: none;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .certificate-display {
+            padding: 0;
+            background: white;
+        }
+        
+        .certificate-frame {
+            box-shadow: none;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="preview-container">
+    <!-- Header -->
+    <div class="preview-header" data-aos="fade-up">
+        <div class="preview-title">
+            <i class="fas fa-eye"></i>
+            <span>Certificate Preview</span>
+        </div>
+        <div class="team-selector">
+            <select id="teamSelect" class="team-select" onchange="loadTeamPreview()">
+                <option value="">Select a team to preview</option>
+                {% for team in teams %}
+                <option value="{{ team.id }}" data-name="{{ team.name }}" data-leader="{{ team.leader_name }}" 
+                        data-score="{{ team.final_score }}" data-rank="{{ team.final_rank }}">
+                    {{ team.name }} - {{ team.leader_name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <!-- Certificate Preview -->
+    <div class="certificate-preview" data-aos="fade-up" data-aos-delay="50">
+        <div class="preview-controls">
+            <div class="control-group">
+                <button class="control-btn" onclick="zoomIn()">
+                    <i class="fas fa-search-plus"></i>
+                    <span>Zoom In</span>
+                </button>
+                <button class="control-btn" onclick="zoomOut()">
+                    <i class="fas fa-search-minus"></i>
+                    <span>Zoom Out</span>
+                </button>
+                <button class="control-btn" onclick="resetZoom()">
+                    <i class="fas fa-sync-alt"></i>
+                    <span>Reset</span>
+                </button>
+                <button class="control-btn" onclick="window.print()">
+                    <i class="fas fa-print"></i>
+                    <span>Print Preview</span>
+                </button>
+            </div>
+            <div class="control-group">
+                <button class="control-btn" onclick="toggleFullscreen()">
+                    <i class="fas fa-expand"></i>
+                    <span>Fullscreen</span>
+                </button>
+            </div>
+        </div>
+        <div class="certificate-display" id="certificateDisplay">
+            <div class="certificate-frame" id="certificateFrame">
+                <div class="certificate-content" id="certificateContent">
+                    <div class="certificate-border"></div>
+                    <div class="certificate-badge" id="certificateBadge">
+                        <i class="fas fa-certificate"></i>
+                    </div>
+                    <div class="certificate-title">
+                        <h1 id="certTitle">CERTIFICATE OF ACHIEVEMENT</h1>
+                        <p>This certificate is proudly presented to</p>
+                    </div>
+                    <div class="certificate-recipient">
+                        <div class="recipient-label">AWARDED TO</div>
+                        <div class="recipient-name" id="recipientName">[Team Name]</div>
+                    </div>
+                    <div class="certificate-details">
+                        <div class="achievement-text" id="achievementText">
+                            for outstanding participation and contribution
+                        </div>
+                        <div class="event-name" id="eventName">{{ event.name }}</div>
+                        <div id="rankDisplay" class="rank-badge" style="display: none;"></div>
+                        <div id="scoreDisplay" class="score-display" style="display: none;"></div>
+                    </div>
+                    <div class="certificate-footer">
+                        <div class="signature">
+                            <div class="signature-line"></div>
+                            <div class="signature-name">Event Coordinator</div>
+                        </div>
+                        <div class="certificate-date" id="certDate">
+                            {{ now.strftime('%B %d, %Y') }}
+                        </div>
+                        <div class="qr-code">
+                            <div class="qr-placeholder">
+                                <i class="fas fa-qrcode" style="font-size: 2rem; color: #999;"></i>
+                            </div>
+                            <div style="font-size: 0.7rem;">Verify Online</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Customization Panel -->
+    <div class="customization-panel" data-aos="fade-up" data-aos-delay="100">
+        <div class="customization-title">
+            <i class="fas fa-palette"></i>
+            <span>Customize Certificate</span>
+        </div>
+        <div class="customization-grid">
+            <div class="custom-field">
+                <label>Certificate Title</label>
+                <input type="text" id="titleInput" value="CERTIFICATE OF ACHIEVEMENT" onchange="updateCertificateStyle()">
+            </div>
+            <div class="custom-field">
+                <label>Achievement Text</label>
+                <input type="text" id="achievementInput" value="for outstanding participation and contribution" onchange="updateCertificateStyle()">
+            </div>
+            <div class="custom-field">
+                <label>Custom Message (Optional)</label>
+                <textarea id="customMessageInput" rows="2" placeholder="Add a personalized message..." onchange="updateCertificateStyle()"></textarea>
+            </div>
+            <div class="custom-field">
+                <label>Border Color</label>
+                <input type="color" id="borderColor" value="#2b6eff" onchange="updateCertificateStyle()">
+            </div>
+            <div class="custom-field">
+                <label>Title Color</label>
+                <input type="color" id="titleColor" value="#2b6eff" onchange="updateCertificateStyle()">
+            </div>
+            <div class="custom-field">
+                <label>Name Color</label>
+                <input type="color" id="nameColor" value="#6b2eff" onchange="updateCertificateStyle()">
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons" data-aos="fade-up" data-aos-delay="150">
+        <button class="btn-primary-large" onclick="generateCertificate()">
+            <i class="fas fa-certificate"></i>
+            <span>Generate & Save Certificate</span>
+        </button>
+        <button class="btn-primary-large" onclick="downloadPreview()">
+            <i class="fas fa-download"></i>
+            <span>Download Preview</span>
+        </button>
+    </div>
+</div>
+
+<script>
+    let currentTeam = null;
+    let currentZoom = 1;
+    let isFullscreen = false;
+
+    // Load team preview
+    function loadTeamPreview() {
+        const select = document.getElementById('teamSelect');
+        const teamId = select.value;
+        
+        if (!teamId) {
+            resetPreview();
+            return;
+        }
+        
+        const option = select.options[select.selectedIndex];
+        currentTeam = {
+            id: parseInt(teamId),
+            name: option.dataset.name,
+            leader: option.dataset.leader,
+            score: parseFloat(option.dataset.score) || 0,
+            rank: parseInt(option.dataset.rank) || 0
+        };
+        
+        updatePreviewDisplay();
+    }
+    
+    function updatePreviewDisplay() {
+        if (!currentTeam) return;
+        
+        // Update recipient name
+        document.getElementById('recipientName').textContent = currentTeam.name;
+        
+        // Update event name
+        document.getElementById('eventName').textContent = "{{ event.name }}";
+        
+        // Update rank display
+        const rankDisplay = document.getElementById('rankDisplay');
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        
+        if (currentTeam.rank >= 1 && currentTeam.rank <= 3) {
+            let rankText = '';
+            let rankIcon = '';
+            switch(currentTeam.rank) {
+                case 1:
+                    rankText = '1st PLACE WINNER';
+                    rankIcon = '🥇';
+                    break;
+                case 2:
+                    rankText = '2nd PLACE WINNER';
+                    rankIcon = '🥈';
+                    break;
+                case 3:
+                    rankText = '3rd PLACE WINNER';
+                    rankIcon = '🥉';
+                    break;
+            }
+            rankDisplay.innerHTML = `<i class="fas fa-trophy"></i> ${rankIcon} ${rankText}`;
+            rankDisplay.style.display = 'inline-block';
+            
+            const badge = document.getElementById('certificateBadge');
+            badge.style.background = currentTeam.rank === 1 ? 'linear-gradient(135deg, #ffaa33, #ff8800)' :
+                                     currentTeam.rank === 2 ? 'linear-gradient(135deg, #c0c0c0, #a0a0a0)' :
+                                     'linear-gradient(135deg, #cd7f32, #b06a28)';
+            badge.innerHTML = `<i class="fas fa-trophy"></i>`;
+        } else {
+            rankDisplay.style.display = 'none';
+            const badge = document.getElementById('certificateBadge');
+            badge.style.background = 'linear-gradient(135deg, #2b6eff, #6b2eff)';
+            badge.innerHTML = `<i class="fas fa-certificate"></i>`;
+        }
+        
+        // Update score display
+        if (currentTeam.score > 0) {
+            scoreDisplay.textContent = `Score: ${currentTeam.score.toFixed(1)} points`;
+            scoreDisplay.style.display = 'block';
+        } else {
+            scoreDisplay.style.display = 'none';
+        }
+        
+        // Update date
+        const now = new Date();
+        document.getElementById('certDate').textContent = now.toLocaleDateString('en-US', { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        });
+    }
+    
+    function updateCertificateStyle() {
+        const borderColor = document.getElementById('borderColor').value;
+        const titleColor = document.getElementById('titleColor').value;
+        const nameColor = document.getElementById('nameColor').value;
+        const titleText = document.getElementById('titleInput').value;
+        const achievementText = document.getElementById('achievementInput').value;
+        const customMessage = document.getElementById('customMessageInput').value;
+        
+        // Update border
+        const border = document.querySelector('.certificate-border');
+        if (border) {
+            border.style.borderColor = borderColor;
+        }
+        
+        // Update title color
+        const title = document.querySelector('#certTitle');
+        if (title) {
+            title.style.color = titleColor;
+        }
+        
+        // Update recipient name color
+        const recipientName = document.getElementById('recipientName');
+        if (recipientName) {
+            recipientName.style.color = nameColor;
+        }
+        
+        // Update title text
+        document.getElementById('certTitle').textContent = titleText;
+        
+        // Update achievement text
+        document.getElementById('achievementText').textContent = achievementText;
+        
+        // Add custom message if provided
+        let detailsDiv = document.querySelector('.certificate-details');
+        let existingCustomMsg = document.getElementById('customMessageDisplay');
+        
+        if (customMessage) {
+            if (existingCustomMsg) {
+                existingCustomMsg.textContent = customMessage;
+            } else {
+                const customMsgDiv = document.createElement('div');
+                customMsgDiv.id = 'customMessageDisplay';
+                customMsgDiv.className = 'custom-message';
+                customMsgDiv.style.cssText = 'margin: 1rem 0; font-style: italic; color: #666;';
+                customMsgDiv.textContent = customMessage;
+                detailsDiv.insertBefore(customMsgDiv, document.getElementById('rankDisplay'));
+            }
+        } else if (existingCustomMsg) {
+            existingCustomMsg.remove();
+        }
+    }
+    
+    // Zoom functions
+    function zoomIn() {
+        currentZoom += 0.1;
+        applyZoom();
+    }
+    
+    function zoomOut() {
+        currentZoom = Math.max(0.5, currentZoom - 0.1);
+        applyZoom();
+    }
+    
+    function resetZoom() {
+        currentZoom = 1;
+        applyZoom();
+    }
+    
+    function applyZoom() {
+        const frame = document.getElementById('certificateFrame');
+        if (frame) {
+            frame.style.transform = `scale(${currentZoom})`;
+            frame.style.transformOrigin = 'center top';
+        }
+    }
+    
+    // Fullscreen mode
+    function toggleFullscreen() {
+        const element = document.getElementById('certificateDisplay');
+        if (!isFullscreen) {
+            if (element.requestFullscreen) {
+                element.requestFullscreen();
+            }
+            isFullscreen = true;
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+            isFullscreen = false;
+        }
+    }
+    
+    // Reset preview
+    function resetPreview() {
+        document.getElementById('recipientName').textContent = '[Team Name]';
+        document.getElementById('rankDisplay').style.display = 'none';
+        document.getElementById('scoreDisplay').style.display = 'none';
+        const badge = document.getElementById('certificateBadge');
+        badge.style.background = 'linear-gradient(135deg, #2b6eff, #6b2eff)';
+        badge.innerHTML = '<i class="fas fa-certificate"></i>';
+    }
+    
+    // Generate certificate
+    function generateCertificate() {
+        if (!currentTeam) {
+            showToast('Please select a team first', 'warning');
+            return;
+        }
+        
+        const data = {
+            team_id: currentTeam.id,
+            event_id: {{ event.id }},
+            title: document.getElementById('titleInput').value,
+            achievement_text: document.getElementById('achievementInput').value,
+            custom_message: document.getElementById('customMessageInput').value,
+            border_color: document.getElementById('borderColor').value,
+            title_color: document.getElementById('titleColor').value,
+            name_color: document.getElementById('nameColor').value
+        };
+        
+        fetch('/certificates/api/generate-single', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast('Certificate generated successfully!', 'success');
+                setTimeout(() => {
+                    window.location.href = `/certificates/view/${data.verification_code}`;
+                }, 1500);
+            } else {
+                showToast('Failed to generate certificate: ' + data.error, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('An error occurred', 'error');
+        });
+    }
+    
+    // Download preview as image
+    function downloadPreview() {
+        html2canvas(document.getElementById('certificateFrame'), {
+            scale: 2,
+            backgroundColor: '#ffffff'
+        }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = `certificate_preview_${currentTeam?.name || 'sample'}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+            showToast('Preview downloaded as image', 'success');
+        }).catch(error => {
+            console.error('Error:', error);
+            showToast('Failed to download preview', 'error');
+        });
+    }
+    
+    function showToast(message, type) {
+        const flashContainer = document.querySelector('.flash-container');
+        if (flashContainer) {
+            const toast = document.createElement('div');
+            toast.className = `flash-message flash-${type}`;
+            toast.innerHTML = `
+                <div class="flash-icon">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                </div>
+                <div class="flash-content">
+                    <span>${escapeHtml(message)}</span>
+                </div>
+                <button class="flash-close">&times;</button>
+                <div class="flash-progress"></div>
+            `;
+            flashContainer.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideOut 0.5s ease forwards';
+                setTimeout(() => toast.remove(), 500);
+            }, 5000);
+            
+            toast.querySelector('.flash-close').addEventListener('click', () => {
+                toast.style.animation = 'slideOut 0.3s ease forwards';
+                setTimeout(() => toast.remove(), 300);
+            });
+        }
+    }
+    
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+    
+    // Load html2canvas for download functionality
+    function loadHtml2Canvas() {
+        if (!window.html2canvas) {
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+            document.head.appendChild(script);
+        }
+    }
+    
+    // Initialize
+    loadHtml2Canvas();
+</script>
+{% endblock %}

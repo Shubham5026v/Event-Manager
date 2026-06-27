@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}My Certificates - EventX{% endblock %}
+
+{% block extra_css %}
+<style>
+    .certificates-page {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .certificates-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        gap: 1rem;
+    }
+
+    .certificate-card {
+        background: rgba(10, 18, 35, 0.75);
+        border: 1px solid rgba(0, 255, 255, 0.15);
+        border-radius: 1.5rem;
+        padding: 1.6rem;
+        margin-bottom: 1rem;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    .certificate-card h3 {
+        margin: 0;
+        color: #ffffff;
+        font-size: 1.2rem;
+    }
+
+    .certificate-card p {
+        margin: 0.25rem 0;
+        color: #a5bbff;
+        font-size: 0.95rem;
+    }
+
+    .certificate-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        justify-content: flex-end;
+    }
+
+    .certificate-actions a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.75rem 1rem;
+        border-radius: 0.85rem;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        color: #ffffff;
+        text-decoration: none;
+        background: rgba(0, 255, 255, 0.08);
+        transition: all 0.25s ease;
+    }
+
+    .certificate-actions a:hover {
+        transform: translateY(-1px);
+        background: rgba(0, 255, 255, 0.18);
+        border-color: rgba(0, 255, 255, 0.25);
+    }
+
+    .empty-state {
+        padding: 2rem;
+        border-radius: 1.25rem;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        text-align: center;
+        color: #a5bbff;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="certificates-page">
+    <div class="certificates-header">
+        <div>
+            <h1>My Certificates</h1>
+            <p style="color: #a5bbff;">View and download certificates for your team participation.</p>
+        </div>
+        <a href="{{ url_for('team.dashboard') }}" class="btn-action btn-secondary">Back to Dashboard</a>
+    </div>
+
+    {% if certificates %}
+        {% for certificate in certificates %}
+            <div class="certificate-card">
+                <div>
+                    <h3>{{ certificate.certificate_type|title }} Certificate</h3>
+                    <p><strong>Event:</strong> {{ certificate.event.name }}</p>
+                    <p><strong>Issued:</strong> {{ certificate.generated_at.strftime('%Y-%m-%d') }}</p>
+                    {% if certificate.rank_position %}
+                        <p><strong>Rank:</strong> {{ certificate.rank_position }}</p>
+                    {% endif %}
+                    <p><strong>Verification Code:</strong> {{ certificate.verification_code }}</p>
+                </div>
+                <div class="certificate-actions">
+                    <a href="{{ url_for('certificates.view_certificate', cert_id=certificate.verification_code) }}">View</a>
+                    <a href="{{ url_for('certificates.download_certificate', cert_id=certificate.verification_code) }}">Download</a>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <h2>No certificates found</h2>
+            <p>Certificates generated for your team will appear here once available.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

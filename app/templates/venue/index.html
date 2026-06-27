@@ -1,0 +1,540 @@
+{% extends "base.html" %}
+
+{% block title %}Venue Management - EventX Venue Booking{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Venue Index Page Styles */
+    .venue-container {
+        padding: 2rem;
+        max-width: 1600px;
+        margin: 0 auto;
+    }
+
+    /* Page Header */
+    .page-header {
+        margin-bottom: 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .page-title {
+        font-size: 2rem;
+        font-weight: 800;
+        font-family: 'Orbitron', monospace;
+        background: linear-gradient(135deg, #fff, #00ffff);
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+    }
+
+    /* Stats Cards */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: rgba(8, 18, 34, 0.6);
+        backdrop-filter: blur(12px);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        text-align: center;
+        border: 1px solid rgba(0, 255, 255, 0.2);
+        transition: all 0.3s;
+        cursor: pointer;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-3px);
+        border-color: #00ffff;
+    }
+
+    .stat-card.active {
+        border-color: #00ffff;
+        background: rgba(0, 255, 255, 0.1);
+    }
+
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 800;
+        font-family: 'Orbitron', monospace;
+        color: #00ffff;
+    }
+
+    .stat-label {
+        font-size: 0.8rem;
+        color: #99aaff;
+        margin-top: 0.3rem;
+    }
+
+    /* Filter Bar */
+    .filter-bar {
+        background: rgba(8, 18, 34, 0.6);
+        backdrop-filter: blur(12px);
+        border-radius: 1rem;
+        padding: 1rem;
+        margin-bottom: 2rem;
+        border: 1px solid rgba(0, 255, 255, 0.2);
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        align-items: flex-end;
+    }
+
+    .filter-group {
+        flex: 1;
+        min-width: 150px;
+    }
+
+    .filter-group label {
+        display: block;
+        font-size: 0.75rem;
+        color: #00ffff;
+        margin-bottom: 0.3rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .filter-group select,
+    .filter-group input {
+        width: 100%;
+        padding: 0.6rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        border-radius: 8px;
+        color: white;
+        font-family: inherit;
+        cursor: pointer;
+    }
+
+    .search-group {
+        flex: 2;
+        min-width: 200px;
+    }
+
+    /* Venues Grid */
+    .venues-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .venue-card {
+        background: rgba(8, 18, 34, 0.6);
+        backdrop-filter: blur(12px);
+        border-radius: 1.5rem;
+        border: 1px solid rgba(0, 255, 255, 0.2);
+        overflow: hidden;
+        transition: all 0.3s;
+        animation: fadeInUp 0.5s ease;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .venue-card:hover {
+        transform: translateY(-5px);
+        border-color: #00ffff;
+        box-shadow: 0 10px 30px rgba(0, 255, 255, 0.1);
+    }
+
+    .venue-image {
+        height: 180px;
+        background-size: cover;
+        background-position: center;
+        position: relative;
+    }
+
+    .venue-image-placeholder {
+        height: 180px;
+        background: linear-gradient(135deg, #2b6eff, #9b4dff);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        color: white;
+    }
+
+    .venue-status-badge {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        backdrop-filter: blur(4px);
+    }
+
+    .status-active {
+        background: rgba(0, 255, 136, 0.9);
+        color: #000;
+    }
+
+    .status-maintenance {
+        background: rgba(255, 170, 51, 0.9);
+        color: #000;
+    }
+
+    .status-closed {
+        background: rgba(255, 51, 102, 0.9);
+        color: #fff;
+    }
+
+    .venue-info {
+        padding: 1.2rem;
+    }
+
+    .venue-name {
+        font-size: 1.2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .venue-type {
+        font-size: 0.7rem;
+        padding: 0.2rem 0.6rem;
+        background: rgba(0, 255, 255, 0.2);
+        border-radius: 20px;
+        color: #00ffff;
+    }
+
+    .venue-details {
+        margin: 0.8rem 0;
+    }
+
+    .detail-row {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.8rem;
+        color: #99aaff;
+        margin-bottom: 0.5rem;
+    }
+
+    .detail-row i {
+        width: 20px;
+        color: #00ffff;
+    }
+
+    .amenities {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.3rem;
+        margin-top: 0.5rem;
+    }
+
+    .amenity-tag {
+        font-size: 0.65rem;
+        padding: 0.2rem 0.5rem;
+        background: rgba(0, 255, 255, 0.1);
+        border-radius: 12px;
+        color: #00ffff;
+    }
+
+    .venue-footer {
+        padding: 0.8rem 1.2rem;
+        border-top: 1px solid rgba(0, 255, 255, 0.1);
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .action-btn {
+        flex: 1;
+        padding: 0.4rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        border-radius: 8px;
+        color: #99aaff;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.4rem;
+        font-size: 0.8rem;
+    }
+
+    .action-btn:hover {
+        background: rgba(0, 255, 255, 0.2);
+        color: #00ffff;
+        transform: scale(1.02);
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 4rem;
+        background: rgba(8, 18, 34, 0.6);
+        border-radius: 2rem;
+        border: 1px solid rgba(0, 255, 255, 0.2);
+        grid-column: 1 / -1;
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        color: #00ffff;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    @media (max-width: 768px) {
+        .venue-container {
+            padding: 1rem;
+        }
+        
+        .venues-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .filter-bar {
+            flex-direction: column;
+        }
+        
+        .filter-group,
+        .search-group {
+            width: 100%;
+        }
+        
+        .venue-footer {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="venue-container">
+    <!-- Page Header -->
+    <div class="page-header" data-aos="fade-up">
+        <div class="page-title">
+            <i class="fas fa-building"></i>
+            <span>Venue Management</span>
+        </div>
+        {% if current_user.role == 'admin' %}
+        <div class="header-actions">
+            <a href="{{ url_for('venue.create') }}" class="btn-glass">
+                <i class="fas fa-plus-circle"></i>
+                <span>Add New Venue</span>
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="stats-grid" data-aos="fade-up" data-aos-delay="50">
+        <div class="stat-card" data-status="all" onclick="filterByStatus('all')">
+            <div class="stat-value">{{ stats.total }}</div>
+            <div class="stat-label">Total Venues</div>
+        </div>
+        <div class="stat-card" data-status="active" onclick="filterByStatus('active')">
+            <div class="stat-value">{{ stats.active }}</div>
+            <div class="stat-label">Active</div>
+        </div>
+        <div class="stat-card" data-status="maintenance" onclick="filterByStatus('maintenance')">
+            <div class="stat-value">{{ stats.maintenance }}</div>
+            <div class="stat-label">Under Maintenance</div>
+        </div>
+        <div class="stat-card" data-status="closed" onclick="filterByStatus('closed')">
+            <div class="stat-value">{{ stats.closed }}</div>
+            <div class="stat-label">Closed</div>
+        </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar" data-aos="fade-up" data-aos-delay="100">
+        <div class="filter-group">
+            <label>Venue Type</label>
+            <select id="typeFilter" onchange="filterVenues()">
+                <option value="all">All Types</option>
+                {% for type in types %}
+                <option value="{{ type }}">{{ type|replace('_', ' ')|title }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>Capacity Range</label>
+            <select id="capacityFilter" onchange="filterVenues()">
+                <option value="all">All Capacities</option>
+                <option value="0-50">Up to 50</option>
+                <option value="50-100">50 - 100</option>
+                <option value="100-200">100 - 200</option>
+                <option value="200-500">200 - 500</option>
+                <option value="500+">500+</option>
+            </select>
+        </div>
+        <div class="search-group">
+            <label>Search</label>
+            <input type="text" id="searchInput" placeholder="Search by name, building..." onkeyup="filterVenues()">
+        </div>
+    </div>
+
+    <!-- Venues Grid -->
+    <div class="venues-grid" id="venuesGrid" data-aos="fade-up" data-aos-delay="150">
+        {% for venue in venues %}
+        <div class="venue-card" 
+             data-id="{{ venue.id }}"
+             data-type="{{ venue.type.value }}"
+             data-status="{{ venue.status.value }}"
+             data-capacity="{{ venue.capacity }}"
+             data-name="{{ venue.name.lower() }}">
+            
+            <div class="venue-image {% if not venue.image_url %}venue-image-placeholder{% endif %}" 
+                 style="{% if venue.image_url %}background-image: url('{{ venue.image_url }}');{% endif %}">
+                {% if not venue.image_url %}
+                <i class="fas fa-building"></i>
+                {% endif %}
+                <span class="venue-status-badge status-{{ venue.status.value }}">
+                    <i class="fas fa-{% if venue.status.value == 'active' %}check-circle{% elif venue.status.value == 'maintenance' %}tools{% else %}times-circle{% endif %}"></i>
+                    {{ venue.status.value|replace('_', ' ')|title }}
+                </span>
+            </div>
+            
+            <div class="venue-info">
+                <div class="venue-name">
+                    <span>{{ venue.name }}</span>
+                    <span class="venue-type">{{ venue.type.value|replace('_', ' ')|title }}</span>
+                </div>
+                <div class="venue-details">
+                    <div class="detail-row">
+                        <i class="fas fa-users"></i>
+                        <span>Capacity: {{ venue.capacity }} people</span>
+                    </div>
+                    {% if venue.building %}
+                    <div class="detail-row">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>{{ venue.building }}{% if venue.floor %}, {{ venue.floor }}{% endif %}{% if venue.room_number %} ({{ venue.room_number }}){% endif %}</span>
+                    </div>
+                    {% endif %}
+                    <div class="detail-row">
+                        <i class="fas fa-clock"></i>
+                        <span>{{ venue.opens_at.strftime('%I:%M %p') if venue.opens_at else '08:00 AM' }} - {{ venue.closes_at.strftime('%I:%M %p') if venue.closes_at else '10:00 PM' }}</span>
+                    </div>
+                    {% if venue.amenities %}
+                    <div class="amenities">
+                        {% for amenity in venue.amenities[:4] %}
+                        <span class="amenity-tag">
+                            <i class="fas fa-{% if amenity == 'ac' %}snowflake{% elif amenity == 'projector' %}video{% elif amenity == 'wifi' %}wifi{% elif amenity == 'parking' %}parking{% else %}check{% endif %}"></i>
+                            {{ amenity|replace('_', ' ')|title }}
+                        </span>
+                        {% endfor %}
+                        {% if venue.amenities|length > 4 %}
+                        <span class="amenity-tag">+{{ venue.amenities|length - 4 }} more</span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="venue-footer">
+                <a href="{{ url_for('booking.create') }}?venue={{ venue.id }}" class="action-btn">
+                    <i class="fas fa-calendar-plus"></i>
+                    <span>Book Now</span>
+                </a>
+                <a href="{{ url_for('venue.view', venue_id=venue.id) }}" class="action-btn">
+                    <i class="fas fa-eye"></i>
+                    <span>Details</span>
+                </a>
+                {% if current_user.role == 'admin' %}
+                <a href="{{ url_for('venue.edit', venue_id=venue.id) }}" class="action-btn">
+                    <i class="fas fa-edit"></i>
+                    <span>Edit</span>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+        
+        {% if not venues %}
+        <div class="empty-state">
+            <i class="fas fa-building"></i>
+            <h3>No Venues Found</h3>
+            <p>No venues match your search criteria.</p>
+            {% if current_user.role == 'admin' %}
+            <a href="{{ url_for('venue.create') }}" class="btn-glass" style="margin-top: 1rem;">
+                <i class="fas fa-plus-circle"></i>
+                <span>Add New Venue</span>
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    let currentStatusFilter = 'all';
+    
+    function filterByStatus(status) {
+        currentStatusFilter = status;
+        
+        // Update active state on stat cards
+        document.querySelectorAll('.stat-card').forEach(card => {
+            if (card.dataset.status === status) {
+                card.classList.add('active');
+            } else {
+                card.classList.remove('active');
+            }
+        });
+        
+        filterVenues();
+    }
+    
+    function filterVenues() {
+        const typeFilter = document.getElementById('typeFilter').value;
+        const capacityFilter = document.getElementById('capacityFilter').value;
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        
+        const cards = document.querySelectorAll('.venue-card');
+        
+        cards.forEach(card => {
+            let show = true;
+            
+            // Filter by status
+            if (currentStatusFilter !== 'all' && card.dataset.status !== currentStatusFilter) show = false;
+            
+            // Filter by type
+            if (typeFilter !== 'all' && card.dataset.type !== typeFilter) show = false;
+            
+            // Filter by capacity
+            if (capacityFilter !== 'all') {
+                const capacity = parseInt(card.dataset.capacity);
+                if (capacityFilter === '0-50' && (capacity > 50)) show = false;
+                else if (capacityFilter === '50-100' && (capacity < 50 || capacity > 100)) show = false;
+                else if (capacityFilter === '100-200' && (capacity < 100 || capacity > 200)) show = false;
+                else if (capacityFilter === '200-500' && (capacity < 200 || capacity > 500)) show = false;
+                else if (capacityFilter === '500+' && capacity < 500) show = false;
+            }
+            
+            // Filter by search
+            if (searchTerm && !card.dataset.name.includes(searchTerm)) show = false;
+            
+            card.style.display = show ? '' : 'none';
+        });
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,1382 @@
+{% extends "base.html" %}
+
+{% block title %}Team Management - EventX Neural Control{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Team Management Specific Styles */
+    .team-container {
+        padding: 2rem;
+        max-width: 1600px;
+        margin: 0 auto;
+    }
+
+    /* Page Header */
+    .page-header {
+        margin-bottom: 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .page-title {
+        font-size: 2rem;
+        font-weight: 800;
+        font-family: 'Orbitron', monospace;
+        background: linear-gradient(135deg, #fff, #00ffff);
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+    }
+
+    .page-title i {
+        background: linear-gradient(135deg, #00ffff, #6b2eff);
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+    }
+
+    /* Event Selector */
+    .event-selector {
+        background: rgba(8, 18, 34, 0.6);
+        backdrop-filter: blur(12px);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        border: 1px solid rgba(0, 255, 255, 0.2);
+    }
+
+    .selector-title {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+        color: #00ffff;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .event-select {
+        width: 100%;
+        padding: 0.8rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        border-radius: 12px;
+        color: white;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .event-select:focus {
+        outline: none;
+        border-color: #00ffff;
+        box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
+    }
+
+    /* Stats Summary */
+    .stats-summary {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-summary-card {
+        background: rgba(8, 18, 34, 0.6);
+        backdrop-filter: blur(12px);
+        border-radius: 1rem;
+        padding: 1rem;
+        text-align: center;
+        border: 1px solid rgba(0, 255, 255, 0.2);
+        transition: all 0.3s;
+    }
+
+    .stat-summary-card:hover {
+        transform: translateY(-3px);
+        border-color: #00ffff;
+    }
+
+    .stat-summary-value {
+        font-size: 1.8rem;
+        font-weight: 800;
+        font-family: 'Orbitron', monospace;
+        color: #00ffff;
+    }
+
+    .stat-summary-label {
+        font-size: 0.8rem;
+        color: #99aaff;
+        margin-top: 0.3rem;
+    }
+
+    /* Filter Bar */
+    .filter-bar {
+        background: rgba(8, 18, 34, 0.6);
+        backdrop-filter: blur(12px);
+        border-radius: 1rem;
+        padding: 1rem;
+        margin-bottom: 2rem;
+        border: 1px solid rgba(0, 255, 255, 0.2);
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        align-items: flex-end;
+    }
+
+    .filter-group {
+        flex: 1;
+        min-width: 150px;
+    }
+
+    .filter-group label {
+        display: block;
+        font-size: 0.75rem;
+        color: #00ffff;
+        margin-bottom: 0.3rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .filter-group select,
+    .filter-group input {
+        width: 100%;
+        padding: 0.6rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        border-radius: 8px;
+        color: white;
+        font-family: inherit;
+        cursor: pointer;
+    }
+
+    .search-group {
+        flex: 2;
+        min-width: 200px;
+    }
+
+    /* Teams Grid */
+    .teams-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .team-card {
+        background: rgba(8, 18, 34, 0.6);
+        backdrop-filter: blur(12px);
+        border-radius: 1.5rem;
+        border: 1px solid rgba(0, 255, 255, 0.2);
+        overflow: hidden;
+        transition: all 0.3s;
+        cursor: pointer;
+        position: relative;
+    }
+
+    .team-card:hover {
+        transform: translateY(-5px);
+        border-color: #00ffff;
+        box-shadow: 0 10px 30px rgba(0, 255, 255, 0.1);
+    }
+
+    .team-card-header {
+        padding: 1.2rem 1.5rem;
+        background: linear-gradient(135deg, rgba(43, 110, 255, 0.1), rgba(155, 77, 255, 0.1));
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+    }
+
+    .team-rank-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+    }
+
+    .rank-1-badge {
+        background: rgba(255, 170, 51, 0.2);
+        color: #ffaa33;
+        border: 1px solid rgba(255, 170, 51, 0.3);
+    }
+
+    .rank-2-badge {
+        background: rgba(192, 192, 192, 0.2);
+        color: #c0c0c0;
+        border: 1px solid rgba(192, 192, 192, 0.3);
+    }
+
+    .rank-3-badge {
+        background: rgba(205, 127, 50, 0.2);
+        color: #cd7f32;
+        border: 1px solid rgba(205, 127, 50, 0.3);
+    }
+
+    .team-name {
+        font-size: 1.2rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .team-name i {
+        color: #00ffff;
+    }
+
+    .team-card-body {
+        padding: 1.5rem;
+    }
+
+    .team-score-large {
+        text-align: center;
+        margin-bottom: 1rem;
+    }
+
+    .team-score-value {
+        font-size: 2.5rem;
+        font-weight: 800;
+        font-family: 'Orbitron', monospace;
+        background: linear-gradient(135deg, #fff, #00ffff);
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+    }
+
+    .team-score-label {
+        font-size: 0.7rem;
+        color: #99aaff;
+    }
+
+    .team-meta-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.8rem;
+        margin-bottom: 1rem;
+        padding-top: 0.5rem;
+        border-top: 1px solid rgba(0, 255, 255, 0.1);
+    }
+
+    .team-meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.8rem;
+        color: #bbccff;
+    }
+
+    .team-meta-item i {
+        color: #00ffff;
+        width: 20px;
+    }
+
+    .member-list {
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid rgba(0, 255, 255, 0.1);
+    }
+
+    .member-list h4 {
+        font-size: 0.8rem;
+        color: #00ffff;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .member-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .member-tag {
+        background: rgba(0, 255, 255, 0.1);
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    .team-card-footer {
+        padding: 1rem 1.5rem;
+        border-top: 1px solid rgba(0, 255, 255, 0.1);
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    /* Table View */
+    .teams-table-view {
+        background: rgba(8, 18, 34, 0.6);
+        backdrop-filter: blur(12px);
+        border-radius: 1.5rem;
+        border: 1px solid rgba(0, 255, 255, 0.2);
+        overflow-x: auto;
+        display: none;
+    }
+
+    .teams-table-view.active {
+        display: block;
+    }
+
+    .teams-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .teams-table th {
+        text-align: left;
+        padding: 1rem 1.5rem;
+        background: rgba(0, 255, 255, 0.05);
+        font-weight: 600;
+        color: #00ffff;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+    }
+
+    .teams-table td {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid rgba(0, 255, 255, 0.1);
+        color: #e0e8ff;
+    }
+
+    .teams-table tr:hover {
+        background: rgba(0, 255, 255, 0.05);
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .action-btn {
+        padding: 0.4rem 0.8rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: none;
+        border-radius: 8px;
+        color: #99aaff;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .action-btn:hover {
+        background: rgba(0, 255, 255, 0.2);
+        color: #00ffff;
+        transform: scale(1.05);
+    }
+
+    /* View Toggle */
+    .view-toggle {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .view-btn {
+        padding: 0.5rem 1rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        border-radius: 8px;
+        color: #99aaff;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .view-btn.active {
+        background: linear-gradient(135deg, #2b6eff, #9b4dff);
+        color: white;
+        border-color: transparent;
+    }
+
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.85);
+        backdrop-filter: blur(15px);
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal.active {
+        display: flex;
+    }
+
+    .modal-content {
+        background: rgba(8, 18, 34, 0.95);
+        backdrop-filter: blur(20px);
+        border-radius: 2rem;
+        padding: 2rem;
+        max-width: 600px;
+        width: 90%;
+        max-height: 85vh;
+        overflow-y: auto;
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        animation: modalSlideIn 0.3s ease;
+    }
+
+    @keyframes modalSlideIn {
+        from {
+            transform: translateY(-50px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+    }
+
+    .modal-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        font-family: 'Orbitron', monospace;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .modal-close {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        color: #fff;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .modal-close:hover {
+        color: #ff3366;
+        transform: rotate(90deg);
+    }
+
+    .form-group {
+        margin-bottom: 1.2rem;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: #00ffff;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        padding: 0.8rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        border-radius: 12px;
+        color: white;
+        font-family: inherit;
+        transition: all 0.2s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: #00ffff;
+        box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    .member-input-group {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .member-input-group input {
+        flex: 1;
+    }
+
+    .remove-member {
+        background: rgba(255, 51, 102, 0.2);
+        border: none;
+        border-radius: 8px;
+        color: #ff3366;
+        cursor: pointer;
+        padding: 0 0.8rem;
+    }
+
+    .add-member-btn {
+        background: rgba(0, 255, 255, 0.1);
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        border-radius: 8px;
+        padding: 0.5rem;
+        color: #00ffff;
+        cursor: pointer;
+        width: 100%;
+        margin-top: 0.5rem;
+    }
+
+    .modal-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+
+    .btn-primary-modal {
+        flex: 1;
+        padding: 0.8rem;
+        background: linear-gradient(135deg, #2b6eff, #9b4dff);
+        border: none;
+        border-radius: 40px;
+        color: white;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+
+    .btn-primary-modal:hover {
+        transform: scale(1.02);
+        box-shadow: 0 5px 20px rgba(43, 110, 255, 0.4);
+    }
+
+    .btn-secondary-modal {
+        flex: 1;
+        padding: 0.8rem;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        border-radius: 40px;
+        color: white;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .btn-danger-modal {
+        flex: 1;
+        padding: 0.8rem;
+        background: rgba(255, 51, 102, 0.2);
+        border: 1px solid rgba(255, 51, 102, 0.5);
+        border-radius: 40px;
+        color: #ff3366;
+        cursor: pointer;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 4rem;
+        background: rgba(8, 18, 34, 0.6);
+        border-radius: 2rem;
+        border: 1px solid rgba(0, 255, 255, 0.2);
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        color: #00ffff;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    .loading-spinner {
+        text-align: center;
+        padding: 3rem;
+    }
+
+    .loading-spinner i {
+        font-size: 2rem;
+        color: #00ffff;
+    }
+
+    @media (max-width: 768px) {
+        .team-container {
+            padding: 1rem;
+        }
+        
+        .teams-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+        
+        .filter-bar {
+            flex-direction: column;
+        }
+        
+        .filter-group,
+        .search-group {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="team-container">
+    <!-- Page Header -->
+    <div class="page-header" data-aos="fade-up">
+        <div class="page-title">
+            <i class="fas fa-users"></i>
+            <span>Team Management</span>
+        </div>
+        <div class="header-actions">
+            <button class="btn-glass" onclick="openModal('createTeamModal')">
+                <i class="fas fa-plus-circle"></i>
+                <span>Register Team</span>
+            </button>
+            <button class="btn-glass" onclick="exportTeams()">
+                <i class="fas fa-download"></i>
+                <span>Export</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Event Selector -->
+    <div class="event-selector" data-aos="fade-up" data-aos-delay="50">
+        <div class="selector-title">
+            <i class="fas fa-calendar-alt"></i>
+            <span>Select Event</span>
+        </div>
+        <select id="eventSelect" class="event-select" onchange="loadEventTeams()">
+            <option value="">-- Choose an event --</option>
+        </select>
+    </div>
+
+    <!-- Stats Summary -->
+    <div class="stats-summary" data-aos="fade-up" data-aos-delay="100" id="statsSummary" style="display: none;">
+        <div class="stat-summary-card">
+            <div class="stat-summary-value" id="totalTeamsCount">0</div>
+            <div class="stat-summary-label">Total Teams</div>
+        </div>
+        <div class="stat-summary-card">
+            <div class="stat-summary-value" id="totalMembersCount">0</div>
+            <div class="stat-summary-label">Total Members</div>
+        </div>
+        <div class="stat-summary-card">
+            <div class="stat-summary-value" id="avgScoreValue">0</div>
+            <div class="stat-summary-label">Average Score</div>
+        </div>
+        <div class="stat-summary-card">
+            <div class="stat-summary-value" id="topTeamScore">0</div>
+            <div class="stat-summary-label">Top Team Score</div>
+        </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar" data-aos="fade-up" data-aos-delay="150" id="filterBar" style="display: none;">
+        <div class="filter-group">
+            <label>Sort By</label>
+            <select id="sortFilter" onchange="filterAndSortTeams()">
+                <option value="rank">Rank (Highest Score)</option>
+                <option value="name">Team Name (A-Z)</option>
+                <option value="members">Members Count</option>
+                <option value="registered">Registration Date</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>Status</label>
+            <select id="statusFilter" onchange="filterAndSortTeams()">
+                <option value="all">All Teams</option>
+                <option value="active">Active</option>
+                <option value="pending">Pending</option>
+                <option value="disqualified">Disqualified</option>
+            </select>
+        </div>
+        <div class="search-group">
+            <label>Search Teams</label>
+            <input type="text" id="searchInput" placeholder="Search by team name, leader, member..." onkeyup="filterAndSortTeams()">
+        </div>
+        <div class="view-toggle">
+            <button class="view-btn active" onclick="setView('grid')" id="gridViewBtn">
+                <i class="fas fa-th-large"></i>
+                <span>Grid</span>
+            </button>
+            <button class="view-btn" onclick="setView('table')" id="tableViewBtn">
+                <i class="fas fa-table"></i>
+                <span>Table</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Teams Content -->
+    <div id="teamsContent">
+        <div class="empty-state">
+            <i class="fas fa-users"></i>
+            <h3>No Event Selected</h3>
+            <p>Please select an event to view and manage teams</p>
+        </div>
+    </div>
+</div>
+
+<!-- Create/Edit Team Modal -->
+<div id="teamModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title" id="modalTitle">
+                <i class="fas fa-user-plus"></i>
+                <span>Register New Team</span>
+            </h3>
+            <button class="modal-close" onclick="closeModal('teamModal')">&times;</button>
+        </div>
+        <form id="teamForm">
+            <input type="hidden" id="teamId" name="teamId">
+            <div class="form-group">
+                <label>Team Name *</label>
+                <input type="text" id="teamName" name="name" required placeholder="Enter team name">
+            </div>
+            <div class="form-group">
+                <label>Team Leader *</label>
+                <input type="text" id="teamLeader" name="leader" required placeholder="Team leader name">
+            </div>
+            <div class="form-group">
+                <label>Email *</label>
+                <input type="email" id="teamEmail" name="email" required placeholder="contact@team.com">
+            </div>
+            <div class="form-group">
+                <label>Phone</label>
+                <input type="tel" id="teamPhone" name="phone" placeholder="Contact number">
+            </div>
+            <div class="form-group">
+                <label>Team Members</label>
+                <div id="membersContainer">
+                    <div class="member-input-group">
+                        <input type="text" placeholder="Member name" class="member-input">
+                        <button type="button" class="remove-member" onclick="removeMember(this)">×</button>
+                    </div>
+                </div>
+                <button type="button" class="add-member-btn" onclick="addMemberField()">
+                    <i class="fas fa-plus"></i> Add Member
+                </button>
+            </div>
+            <div class="form-group">
+                <label>Status</label>
+                <select id="teamStatus" name="status">
+                    <option value="active">Active</option>
+                    <option value="pending">Pending Approval</option>
+                    <option value="disqualified">Disqualified</option>
+                </select>
+            </div>
+            <div class="modal-actions">
+                <button type="submit" class="btn-primary-modal">Save Team</button>
+                <button type="button" class="btn-secondary-modal" onclick="closeModal('teamModal')">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">
+                <i class="fas fa-trash-alt"></i>
+                <span>Delete Team</span>
+            </h3>
+            <button class="modal-close" onclick="closeModal('deleteModal')">&times;</button>
+        </div>
+        <div class="delete-warning" style="text-align: center; padding: 1rem;">
+            <i class="fas fa-exclamation-triangle" style="font-size: 4rem; color: #ff3366; margin-bottom: 1rem;"></i>
+            <h4>Are you sure?</h4>
+            <p>This action cannot be undone. All team data, scores, and achievements will be permanently deleted.</p>
+            <p id="deleteTeamName" style="color: #ff3366; font-weight: bold; margin-top: 1rem;"></p>
+        </div>
+        <div class="modal-actions">
+            <button class="btn-danger-modal" onclick="confirmDelete()">Delete Permanently</button>
+            <button class="btn-secondary-modal" onclick="closeModal('deleteModal')">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentEvent = null;
+    let currentTeams = [];
+    let currentView = 'grid';
+    let deleteTeamId = null;
+    let currentFilters = {
+        sort: 'rank',
+        status: 'all',
+        search: ''
+    };
+
+    // Fetch events for dropdown
+    async function loadEvents() {
+        try {
+            const response = await fetch('/api/admin/events');
+            const data = await response.json();
+            const events = data.events || getDemoEvents();
+            const eventSelect = document.getElementById('eventSelect');
+            
+            eventSelect.innerHTML = '<option value="">-- Choose an event --</option>' + 
+                events.map(event => `<option value="${event.id}">${escapeHtml(event.name)} (${event.status})</option>`).join('');
+        } catch (error) {
+            console.error('Error loading events:', error);
+            loadDemoEvents();
+        }
+    }
+
+    function loadDemoEvents() {
+        const demoEvents = [
+            { id: 1, name: 'AI Hackathon 2026', status: 'active' },
+            { id: 2, name: 'Robotics Challenge', status: 'active' },
+            { id: 3, name: 'Web3 Summit', status: 'upcoming' }
+        ];
+        const eventSelect = document.getElementById('eventSelect');
+        eventSelect.innerHTML = '<option value="">-- Choose an event --</option>' + 
+            demoEvents.map(event => `<option value="${event.id}">${escapeHtml(event.name)} (${event.status})</option>`).join('');
+    }
+
+    // Load event teams
+    async function loadEventTeams() {
+        const eventId = document.getElementById('eventSelect').value;
+        if (!eventId) {
+            document.getElementById('teamsContent').innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-users"></i>
+                    <h3>No Event Selected</h3>
+                    <p>Please select an event to view and manage teams</p>
+                </div>
+            `;
+            document.getElementById('statsSummary').style.display = 'none';
+            document.getElementById('filterBar').style.display = 'none';
+            return;
+        }
+
+        showLoading();
+        
+        try {
+            const response = await fetch(`/api/admin/events/${eventId}/teams`);
+            const data = await response.json();
+            currentEvent = { id: eventId, name: 'Selected Event' };
+            currentTeams = data.teams || getDemoTeams();
+            updateStats();
+            renderTeams();
+            document.getElementById('statsSummary').style.display = 'grid';
+            document.getElementById('filterBar').style.display = 'flex';
+        } catch (error) {
+            console.error('Error loading teams:', error);
+            currentTeams = getDemoTeams();
+            updateStats();
+            renderTeams();
+            document.getElementById('statsSummary').style.display = 'grid';
+            document.getElementById('filterBar').style.display = 'flex';
+        }
+    }
+
+    function getDemoTeams() {
+        return [
+            { 
+                id: 1, 
+                name: 'Neural Ninjas', 
+                leader: 'Alex Chen', 
+                email: 'ninjas@example.com',
+                phone: '+1 234-567-8901',
+                members: ['Sarah Lee', 'Mike Ross', 'Emma Watson'],
+                score: 87.5,
+                status: 'active',
+                registered: '2026-03-15'
+            },
+            { 
+                id: 2, 
+                name: 'Code Wizards', 
+                leader: 'Jessica Taylor', 
+                email: 'wizards@example.com',
+                phone: '+1 234-567-8902',
+                members: ['David Kim', 'Lisa Wong', 'Tom Harris'],
+                score: 76.0,
+                status: 'active',
+                registered: '2026-03-16'
+            },
+            { 
+                id: 3, 
+                name: 'Quantum Crew', 
+                leader: 'Daniel Park', 
+                email: 'quantum@example.com',
+                phone: '+1 234-567-8903',
+                members: ['Oliver Chen', 'Sophia Rodriguez'],
+                score: 68.5,
+                status: 'pending',
+                registered: '2026-03-17'
+            },
+            { 
+                id: 4, 
+                name: 'Data Demons', 
+                leader: 'Rachel Green', 
+                email: 'demons@example.com',
+                phone: '+1 234-567-8904',
+                members: ['Monica Bell', 'Chandler Bing', 'Phoebe Buffay'],
+                score: 55.0,
+                status: 'active',
+                registered: '2026-03-14'
+            }
+        ];
+    }
+
+    function updateStats() {
+        const totalTeams = currentTeams.length;
+        const totalMembers = currentTeams.reduce((sum, team) => sum + (team.members?.length || 0) + 1, 0);
+        const avgScore = currentTeams.reduce((sum, team) => sum + (team.score || 0), 0) / totalTeams || 0;
+        const topScore = Math.max(...currentTeams.map(t => t.score || 0), 0);
+        
+        document.getElementById('totalTeamsCount').textContent = totalTeams;
+        document.getElementById('totalMembersCount').textContent = totalMembers;
+        document.getElementById('avgScoreValue').textContent = avgScore.toFixed(1);
+        document.getElementById('topTeamScore').textContent = topScore.toFixed(1);
+    }
+
+    function filterAndSortTeams() {
+        currentFilters.sort = document.getElementById('sortFilter').value;
+        currentFilters.status = document.getElementById('statusFilter').value;
+        currentFilters.search = document.getElementById('searchInput').value.toLowerCase();
+        
+        renderTeams();
+    }
+
+    function getFilteredTeams() {
+        let filtered = [...currentTeams];
+        
+        // Filter by status
+        if (currentFilters.status !== 'all') {
+            filtered = filtered.filter(team => team.status === currentFilters.status);
+        }
+        
+        // Filter by search
+        if (currentFilters.search) {
+            filtered = filtered.filter(team => 
+                team.name.toLowerCase().includes(currentFilters.search) ||
+                team.leader.toLowerCase().includes(currentFilters.search) ||
+                (team.members && team.members.some(m => m.toLowerCase().includes(currentFilters.search)))
+            );
+        }
+        
+        // Sort
+        switch (currentFilters.sort) {
+            case 'rank':
+                filtered.sort((a, b) => (b.score || 0) - (a.score || 0));
+                break;
+            case 'name':
+                filtered.sort((a, b) => a.name.localeCompare(b.name));
+                break;
+            case 'members':
+                filtered.sort((a, b) => ((b.members?.length || 0) - (a.members?.length || 0)));
+                break;
+            case 'registered':
+                filtered.sort((a, b) => new Date(b.registered) - new Date(a.registered));
+                break;
+        }
+        
+        return filtered;
+    }
+
+    function renderTeams() {
+        const filteredTeams = getFilteredTeams();
+        
+        if (filteredTeams.length === 0) {
+            document.getElementById('teamsContent').innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-users-slash"></i>
+                    <h3>No Teams Found</h3>
+                    <p>Try adjusting your filters or register a new team</p>
+                    <button class="btn-glass" onclick="openModal('createTeamModal')">
+                        <i class="fas fa-plus"></i> Register Team
+                    </button>
+                </div>
+            `;
+            return;
+        }
+        
+        if (currentView === 'grid') {
+            renderGridView(filteredTeams);
+        } else {
+            renderTableView(filteredTeams);
+        }
+    }
+
+    function renderGridView(teams) {
+        const container = document.getElementById('teamsContent');
+        
+        container.innerHTML = `
+            <div class="teams-grid" data-aos="fade-up">
+                ${teams.map((team, index) => `
+                    <div class="team-card" onclick="viewTeamDetails(${team.id})">
+                        <div class="team-card-header">
+                            <div class="team-rank-badge rank-${index === 0 ? '1' : index === 1 ? '2' : index === 2 ? '3' : ''}-badge">
+                                <i class="fas fa-${index === 0 ? 'crown' : index === 1 ? 'medal' : index === 2 ? 'award' : 'hashtag'}"></i>
+                                <span>#${index + 1}</span>
+                            </div>
+                            <div class="team-name">
+                                <i class="fas fa-users"></i>
+                                <span>${escapeHtml(team.name)}</span>
+                            </div>
+                        </div>
+                        <div class="team-card-body">
+                            <div class="team-score-large">
+                                <div class="team-score-value">${(team.score || 0).toFixed(1)}</div>
+                                <div class="team-score-label">Total Points</div>
+                            </div>
+                            <div class="team-meta-grid">
+                                <div class="team-meta-item">
+                                    <i class="fas fa-user-tie"></i>
+                                    <span>${escapeHtml(team.leader)}</span>
+                                </div>
+                                <div class="team-meta-item">
+                                    <i class="fas fa-envelope"></i>
+                                    <span>${escapeHtml(team.email)}</span>
+                                </div>
+                                <div class="team-meta-item">
+                                    <i class="fas fa-phone"></i>
+                                    <span>${escapeHtml(team.phone || 'N/A')}</span>
+                                </div>
+                                <div class="team-meta-item">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    <span>${formatDate(team.registered)}</span>
+                                </div>
+                            </div>
+                            <div class="member-list">
+                                <h4><i class="fas fa-user-friends"></i> Team Members (${(team.members?.length || 0) + 1})</h4>
+                                <div class="member-tags">
+                                    <span class="member-tag"><i class="fas fa-crown"></i> ${escapeHtml(team.leader)} (Leader)</span>
+                                    ${(team.members || []).map(member => `
+                                        <span class="member-tag"><i class="fas fa-user"></i> ${escapeHtml(member)}</span>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="team-card-footer">
+                            <button class="action-btn" onclick="event.stopPropagation(); editTeam(${team.id})">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <button class="action-btn" onclick="event.stopPropagation(); openDeleteModal(${team.id}, '${escapeHtml(team.name)}')">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                            <button class="action-btn" onclick="event.stopPropagation(); window.location.href='/admin/teams/${team.id}/scores'">
+                                <i class="fas fa-chart-line"></i> Scores
+                            </button>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+
+    function renderTableView(teams) {
+        const container = document.getElementById('teamsContent');
+        
+        container.innerHTML = `
+            <div class="teams-table-view active">
+                <table class="teams-table">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Team Name</th>
+                            <th>Leader</th>
+                            <th>Members</th>
+                            <th>Score</th>
+                            <th>Status</th>
+                            <th>Registered</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${teams.map((team, index) => `
+                            <tr>
+                                <td style="font-weight: bold; color: ${index === 0 ? '#ffaa33' : index === 1 ? '#c0c0c0' : index === 2 ? '#cd7f32' : '#fff'}">
+                                    ${index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`}
+                                </td>
+                                <td><strong>${escapeHtml(team.name)}</strong></td>
+                                <td>${escapeHtml(team.leader)}</td>
+                                <td>${(team.members?.length || 0) + 1}</td>
+                                <td style="font-family: 'Orbitron', monospace;">${(team.score || 0).toFixed(1)}</td>
+                                <td>
+                                    <span class="event-status-badge status-${team.status}">
+                                        <i class="fas fa-circle"></i>
+                                        <span>${team.status}</span>
+                                    </span>
+                                </td>
+                                <td>${formatDate(team.registered)}</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="action-btn" onclick="editTeam(${team.id})" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="action-btn" onclick="openDeleteModal(${team.id}, '${escapeHtml(team.name)}')" title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                        <button class="action-btn" onclick="window.location.href='/admin/teams/${team.id}/scores'" title="Manage Scores">
+                                            <i class="fas fa-chart-line"></i>
+                                        </button>
+                                        <button class="action-btn" onclick="viewTeamDetails(${team.id})" title="Details">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+
+    function setView(view) {
+        currentView = view;
+        const gridBtn = document.getElementById('gridViewBtn');
+        const tableBtn = document.getElementById('tableViewBtn');
+        
+        if (view === 'grid') {
+            gridBtn.classList.add('active');
+            tableBtn.classList.remove('active');
+        } else {
+            gridBtn.classList.remove('active');
+            tableBtn.classList.add('active');
+        }
+        
+        renderTeams();
+    }
+
+    // Member management
+    function addMemberField() {
+        const container = document.getElementById('membersContainer');
+        const memberDiv = document.createElement('div');
+        memberDiv.className = 'member-input-group';
+        memberDiv.innerHTML = `
+            <input type="text" placeholder="Member name" class="member-input">
+            <button type="button" class="remove-member" onclick="removeMember(this)">×</button>
+        `;
+        container.appendChild(memberDiv);
+    }
+
+    function removeMember(button) {
+        button.parentElement.remove();
+    }
+
+    function getMembersFromForm() {
+        const memberInputs = document.querySelectorAll('.member-input');
+        return Array.from(memberInputs).map(input => input.value).filter(name => name.trim());
+    }
+
+    // Modal functions
+    function openModal(modalId) {
+        if (modalId === 'createTeamModal') {
+            document.getElementById('modalTitle').innerHTML = '<i class="fas fa-user-plus"></i><span>Register New Team</span>';
+            document.getElementById('teamForm').reset();
+            document.getElementById('teamId').value = '';
+            document.getElementById('membersContainer').innerHTML = `
+                <div class="member-input-group">
+                    <input type="text" placeholder="Member name" class="member-input">
+                    <button type="button" class="remove-member" onclick="removeMember(this)">×</button>
+                </div>
+            `;
+            document.getElementById('teamModal').classList.add('active');
+        }
+    }
+
+    function closeModal(modalId) {
+        document.getElementById(modalId).classList.remove('active');
+    }
+
+    function editTeam(teamId) {
+        const team = currentTeams.find(t => t.id === teamId);
+        if (team) {
+            document.getElementById('modalTitle').innerHTML = '<i class="fas fa-edit"></i><span>Edit Team</span>';
+            document.getElementById('teamId').value = team.id;
+            document.getElementById('teamName').value = team.name;
+            document.getElementById('teamLeader').value = team.leader;
+            document.getElementById('teamEmail').value = team.email;
+            document.getElementById('teamPhone').value = team.phone || '';
+            document.getElementById('teamStatus').value = team.status;
+            
+            const container = document.getElementById('membersContainer');
+            container.innerHTML = '';
+            if (team.members && team.members.length) {
+                team.members.forEach(member => {
+                    const memberDiv = document.createElement('div');
+                    memberDiv.className = 'member-input-group';
+                    memberDiv.innerHTML = `
+                        <input type="text" placeholder="Member name" class="member-input" value="${escapeHtml(member)}">
+                        <button type="button" class="remove-member" onclick="removeMember(this)">×</button>
+                    `;
+                    container.appendChild(memberDiv);
+                });
+            } else {
+                container.innerHTML = `
+                    <div class="member-input-group">
+                        <input type="text" placeholder="Member name" class="member-input">
+                        <button type="button" class="remove-member" onclick="removeMember(this)">×</button>
+                    </div>
+                `;
+            }
+            
+            document.getElementById('teamModal').classList.add('active');
+        }
+    }
+
+    function openDeleteModal(teamId, teamName) {
+        deleteTeamId = teamId;
+        document.getElementById('deleteTeamName').textContent = `"${teamName}"`;
+        document.getElementById('deleteModal').classList.add('active');
+    }
+
+    function confirmDelete() {
+        if (deleteTeamId) {
+            currentTeams = currentTeams.filter(t => t.id !== deleteTeamId);
+            updateStats();
+            renderTeams();
+            closeModal('deleteModal');
+            showNotification('Team deleted successfully', 'success');
+            deleteTeamId = null;
+        }
+    }
+
+    function viewTeamDetails(teamId) {
+        showNotification(`Viewing details for team ID: ${teamId}`, 'info');
+    }
+
+    function exportTeams() {
+        const filteredTeams = getFilteredTeams();
+        const exportData = {
+            event: currentEvent,
+            teams: filteredTeams,
+            exportedAt: new Date().toISOString()
+        };
+        
+        const dataStr = JSON.stringify(exportData, null, 2);
+        const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+        const exportFileDefaultName = `teams_${currentEvent?.name || 'event'}_${new Date().toISOString().slice(0,19)}.json`;
+        const linkElement = document.createElement('a');
+        linkElement.setAttribute('href', dataUri);
+        linkElement.setAttribute('download', exportFileDefaultName);
+        linkElement.click();
+        showNotification('Teams exported successfully', 'success');
+    }
+
+    function formatDate(dateString) {
+        if (!dateString) return 'N/A';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+
+    function showLoading() {
+        document.getElementById('teamsContent').innerHTML = `
+            <div class="loading-spinner">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Loading teams...</p>
+            </div>
+        `;
+    }
+
+    function showNotification(message, type) {
+        const flashContainer = document.querySelector('.flash-container');
+        if (flashContainer) {
+            const notification = document.createElement('div');
+            notification.className = `flash-message flash-${type}`;
+            notification.innerHTML = `
+                <div class="flash-icon">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : 'info-circle'}"></i>
+                </div>
+                <div class="flash-content">
+                    <span>${message}</span>
+                </div>
+                <button class="flash-close">&times;</button>
+                <div class="flash-progress"></div>
+            `;
+            flashContainer.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.5s ease forwards';
+                setTimeout(() => notification.remove(), 500);
+            }, 5000);
+            
+            notification.querySelector('.flash-close').addEventListener('click', () => {
+                notification.style.animation = 'slideOut 0.3s ease forwards';
+                setTimeout(() => notification.remove(), 300);
+            });
+        }
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    // Form submission
+    document.getElementById('teamForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const teamId = document.getElementById('teamId').value;
+        const members = getMembersFromForm();
+        
+        const formData = {
+            name: document.getElementById('teamName').value,
+            leader: document.getElementById('teamLeader').value,
+            email: document.getElementById('teamEmail').value,
+            phone: document.getElementById('teamPhone').value,
+            members: members,
+            status: document.getElementById('teamStatus').value,
+            score: teamId ? currentTeams.find(t => t.id === parseInt(teamId))?.score || 0 : 0,
+            registered: teamId ? currentTeams.find(t => t.id === parseInt(teamId))?.registered || new Date().toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
+        };
+        
+        if (teamId) {
+            // Update existing team
+            const index = currentTeams.findIndex(t => t.id === parseInt(teamId));
+            if (index !== -1) {
+                currentTeams[index] = { ...currentTeams[index], ...formData, id: parseInt(teamId) };
+                showNotification('Team updated successfully', 'success');
+            }
+        } else {
+            // Create new team
+            const newTeam = {
+                id: Math.max(...currentTeams.map(t => t.id), 0) + 1,
+                ...formData
+            };
+            currentTeams.push(newTeam);
+            showNotification('Team registered successfully', 'success');
+        }
+        
+        updateStats();
+        renderTeams();
+        closeModal('teamModal');
+    });
+
+    // Initialize
+    loadEvents();
+</script>
+{% endblock %}

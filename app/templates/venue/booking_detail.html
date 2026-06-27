@@ -1,0 +1,672 @@
+{% extends "base.html" %}
+
+{% block title %}Booking Details - {{ booking.title }} | EventX{% endblock %}
+
+{% block extra_css %}
+<style>
+    .booking-detail-container {
+        padding: 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    /* Page Header */
+    .page-header {
+        margin-bottom: 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .page-title {
+        font-size: 2rem;
+        font-weight: 800;
+        font-family: 'Orbitron', monospace;
+        background: linear-gradient(135deg, #fff, #00ffff);
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+    }
+
+    /* Status Badge */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.4rem 1rem;
+        border-radius: 40px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .status-pending_faculty { background: rgba(255, 170, 51, 0.2); color: #ffaa33; border: 1px solid rgba(255, 170, 51, 0.3); }
+    .status-pending_admin { background: rgba(43, 110, 255, 0.2); color: #2b6eff; border: 1px solid rgba(43, 110, 255, 0.3); }
+    .status-pending_security { background: rgba(0, 255, 255, 0.2); color: #00ffff; border: 1px solid rgba(0, 255, 255, 0.3); }
+    .status-approved, .status-confirmed { background: rgba(0, 255, 136, 0.2); color: #00ff88; border: 1px solid rgba(0, 255, 136, 0.3); }
+    .status-rejected, .status-cancelled { background: rgba(255, 51, 102, 0.2); color: #ff3366; border: 1px solid rgba(255, 51, 102, 0.3); }
+
+    /* Detail Cards */
+    .detail-card {
+        background: rgba(8, 18, 34, 0.6);
+        backdrop-filter: blur(12px);
+        border-radius: 1.5rem;
+        border: 1px solid rgba(0, 255, 255, 0.2);
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .card-header {
+        padding: 1.2rem 1.5rem;
+        background: linear-gradient(135deg, rgba(43, 110, 255, 0.1), rgba(155, 77, 255, 0.1));
+        border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 600;
+    }
+
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    /* Details Grid */
+    .details-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .detail-item {
+        margin-bottom: 1rem;
+    }
+
+    .detail-label {
+        color: #99aaff;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 0.3rem;
+    }
+
+    .detail-value {
+        font-size: 1rem;
+        font-weight: 600;
+    }
+
+    /* Priority Badge */
+    .priority-high { color: #ff3366; }
+    .priority-medium { color: #ffaa33; }
+    .priority-low { color: #00ff88; }
+
+    /* Approval Timeline */
+    .approval-timeline {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: relative;
+        padding: 1rem 0;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .approval-step {
+        flex: 1;
+        text-align: center;
+        position: relative;
+        z-index: 1;
+    }
+
+    .step-icon {
+        width: 50px;
+        height: 50px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 2px solid rgba(0, 255, 255, 0.3);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 0.5rem;
+        font-size: 1.2rem;
+        transition: all 0.3s;
+    }
+
+    .approval-step.completed .step-icon {
+        background: rgba(0, 255, 136, 0.2);
+        border-color: #00ff88;
+        color: #00ff88;
+    }
+
+    .approval-step.active .step-icon {
+        background: linear-gradient(135deg, #2b6eff, #9b4dff);
+        border-color: #00ffff;
+        box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+        animation: pulse 2s infinite;
+    }
+
+    .approval-step.rejected .step-icon {
+        background: rgba(255, 51, 102, 0.2);
+        border-color: #ff3366;
+        color: #ff3366;
+    }
+
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+
+    .step-name {
+        font-weight: 600;
+        font-size: 0.8rem;
+    }
+
+    .step-status {
+        font-size: 0.7rem;
+        color: #99aaff;
+    }
+
+    .step-approver {
+        font-size: 0.7rem;
+        color: #00ffff;
+        margin-top: 0.2rem;
+    }
+
+    .timeline-connector {
+        position: absolute;
+        top: 25px;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: rgba(0, 255, 255, 0.2);
+        z-index: 0;
+    }
+
+    /* Requirements Tags */
+    .requirements-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+    }
+
+    .requirement-tag {
+        background: rgba(0, 255, 255, 0.1);
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    /* Action Buttons */
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+        margin-top: 1rem;
+    }
+
+    .btn-cancel {
+        padding: 0.6rem 1.2rem;
+        background: rgba(255, 51, 102, 0.2);
+        border: 1px solid rgba(255, 51, 102, 0.5);
+        border-radius: 40px;
+        color: #ff3366;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-cancel:hover {
+        background: rgba(255, 51, 102, 0.3);
+        transform: scale(1.02);
+    }
+
+    /* History Section */
+    .history-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.8rem 0;
+        border-bottom: 1px solid rgba(0, 255, 255, 0.1);
+    }
+
+    .history-icon {
+        width: 35px;
+        height: 35px;
+        background: rgba(0, 255, 255, 0.1);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    @media (max-width: 768px) {
+        .booking-detail-container {
+            padding: 1rem;
+        }
+        
+        .approval-timeline {
+            flex-direction: column;
+        }
+        
+        .timeline-connector {
+            display: none;
+        }
+        
+        .details-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .action-buttons {
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="booking-detail-container">
+    <!-- Page Header -->
+    <div class="page-header" data-aos="fade-up">
+        <div class="page-title">
+            <i class="fas fa-calendar-check"></i>
+            <span>Booking Details</span>
+        </div>
+        <div class="status-badge status-{{ booking.status.value }}">
+            <i class="fas fa-{% if booking.status.value == 'confirmed' %}check-circle{% elif booking.status.value in ['pending_faculty', 'pending_admin', 'pending_security'] %}clock{% elif booking.status.value in ['rejected', 'cancelled'] %}times-circle{% else %}info-circle{% endif %}"></i>
+            <span>{{ booking.status.value|replace('_', ' ')|title }}</span>
+        </div>
+    </div>
+
+    <!-- Booking Information -->
+    <div class="detail-card" data-aos="fade-up" data-aos-delay="50">
+        <div class="card-header">
+            <i class="fas fa-info-circle"></i>
+            <span>Booking Information</span>
+        </div>
+        <div class="card-body">
+            <div class="details-grid">
+                <div>
+                    <div class="detail-item">
+                        <div class="detail-label">Event Title</div>
+                        <div class="detail-value">{{ booking.title }}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Event Type</div>
+                        <div class="detail-value">{{ booking.event_type|title }}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Priority Level</div>
+                        <div class="detail-value priority-{% if booking.priority == 1 %}high{% elif booking.priority == 2 %}medium{% else %}low{% endif %}">
+                            {{ booking.get_priority_level() }}
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class="detail-item">
+                        <div class="detail-label">Description</div>
+                        <div class="detail-value">{{ booking.description or 'No description provided' }}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Expected Attendees</div>
+                        <div class="detail-value">{{ booking.expected_attendees or 'Not specified' }}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Requested By</div>
+                        <div class="detail-value">{{ booking.created_by_username if booking.created_by_username else 'N/A' }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Venue & Time -->
+    <div class="detail-card" data-aos="fade-up" data-aos-delay="100">
+        <div class="card-header">
+            <i class="fas fa-map-marker-alt"></i>
+            <span>Venue & Time</span>
+        </div>
+        <div class="card-body">
+            <div class="details-grid">
+                <div>
+                    <div class="detail-item">
+                        <div class="detail-label">Venue</div>
+                        <div class="detail-value">{{ booking.venue.name }}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Venue Type</div>
+                        <div class="detail-value">{{ booking.venue.type.value|replace('_', ' ')|title }}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Capacity</div>
+                        <div class="detail-value">{{ booking.venue.capacity }} people</div>
+                    </div>
+                </div>
+                <div>
+                    <div class="detail-item">
+                        <div class="detail-label">Date</div>
+                        <div class="detail-value">{{ booking.start_time.strftime('%A, %B %d, %Y') }}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Time</div>
+                        <div class="detail-value">{{ booking.start_time.strftime('%I:%M %p') }} - {{ booking.end_time.strftime('%I:%M %p') }}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Duration</div>
+                        <div class="detail-value">{{ ((booking.end_time - booking.start_time).total_seconds() / 3600)|round(1) }} hours</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Requirements -->
+    {% if booking.requirements or booking.special_requests %}
+    <div class="detail-card" data-aos="fade-up" data-aos-delay="150">
+        <div class="card-header">
+            <i class="fas fa-clipboard-list"></i>
+            <span>Requirements & Requests</span>
+        </div>
+        <div class="card-body">
+            {% if booking.requirements %}
+            <div class="detail-item">
+                <div class="detail-label">Amenities Required</div>
+                <div class="requirements-list">
+                    {% for amenity, required in booking.requirements.items() %}
+                        {% if required %}
+                        <span class="requirement-tag">
+                            <i class="fas fa-check-circle"></i>
+                            {{ amenity|replace('_', ' ')|title }}
+                        </span>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            {% if booking.special_requests %}
+            <div class="detail-item">
+                <div class="detail-label">Special Requests</div>
+                <div class="detail-value">{{ booking.special_requests }}</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Approval Workflow -->
+    <div class="detail-card" data-aos="fade-up" data-aos-delay="200">
+        <div class="card-header">
+            <i class="fas fa-project-diagram"></i>
+            <span>Approval Workflow</span>
+        </div>
+        <div class="card-body">
+            <div class="approval-timeline">
+                <div class="timeline-connector"></div>
+                
+                <!-- Faculty Approval -->
+                <div class="approval-step 
+                    {% if booking.faculty_approved %}completed
+                    {% elif booking.status.value == 'pending_faculty' %}active
+                    {% elif booking.rejection_stage == 'faculty' %}rejected
+                    {% endif %}">
+                    <div class="step-icon">
+                        <i class="fas fa-chalkboard-user"></i>
+                    </div>
+                    <div class="step-name">Faculty Approval</div>
+                    <div class="step-status">
+                        {% if booking.faculty_approved %}
+                            <i class="fas fa-check-circle"></i> Approved
+                        {% elif booking.rejection_stage == 'faculty' %}
+                            <i class="fas fa-times-circle"></i> Rejected
+                        {% elif booking.status.value == 'pending_faculty' %}
+                            <i class="fas fa-spinner fa-spin"></i> Pending
+                        {% else %}
+                            <i class="fas fa-hourglass"></i> Not Required
+                        {% endif %}
+                    </div>
+                    {% if booking.faculty_approved_by %}
+                    <div class="step-approver">
+                        <i class="fas fa-user-check"></i> {{ booking.faculty_approver_name or 'Faculty' }}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Admin Approval -->
+                <div class="approval-step 
+                    {% if booking.admin_approved %}completed
+                    {% elif booking.status.value == 'pending_admin' %}active
+                    {% elif booking.rejection_stage == 'admin' %}rejected
+                    {% endif %}">
+                    <div class="step-icon">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <div class="step-name">Admin Approval</div>
+                    <div class="step-status">
+                        {% if booking.admin_approved %}
+                            <i class="fas fa-check-circle"></i> Approved
+                        {% elif booking.rejection_stage == 'admin' %}
+                            <i class="fas fa-times-circle"></i> Rejected
+                        {% elif booking.status.value == 'pending_admin' %}
+                            <i class="fas fa-spinner fa-spin"></i> Pending
+                        {% else %}
+                            <i class="fas fa-hourglass"></i> Not Required
+                        {% endif %}
+                    </div>
+                    {% if booking.admin_approved_by %}
+                    <div class="step-approver">
+                        <i class="fas fa-user-check"></i> {{ booking.admin_approver_name or 'Admin' }}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Security Approval -->
+                <div class="approval-step 
+                    {% if booking.security_approved %}completed
+                    {% elif booking.status.value == 'pending_security' %}active
+                    {% elif booking.rejection_stage == 'security' %}rejected
+                    {% endif %}">
+                    <div class="step-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <div class="step-name">Security Clearance</div>
+                    <div class="step-status">
+                        {% if booking.security_approved %}
+                            <i class="fas fa-check-circle"></i> Approved
+                        {% elif booking.rejection_stage == 'security' %}
+                            <i class="fas fa-times-circle"></i> Rejected
+                        {% elif booking.status.value == 'pending_security' %}
+                            <i class="fas fa-spinner fa-spin"></i> Pending
+                        {% else %}
+                            <i class="fas fa-hourglass"></i> Not Required
+                        {% endif %}
+                    </div>
+                    {% if booking.security_approved_by %}
+                    <div class="step-approver">
+                        <i class="fas fa-user-check"></i> {{ booking.security_approver_name or 'Security' }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons" data-aos="fade-up" data-aos-delay="250">
+        {% if booking.can_cancel() and (current_user.role == 'admin' or booking.created_by == current_user.id) %}
+        <button class="btn-cancel" onclick="openCancelModal()">
+            <i class="fas fa-times-circle"></i>
+            <span>Cancel Booking</span>
+        </button>
+        {% endif %}
+        
+        {% if current_user.role in ['security', 'admin'] and booking.status.value == 'confirmed' %}
+            {% if not booking.checked_in_at %}
+            <form method="POST" action="{{ url_for('booking.check_in', booking_id=booking.id) }}" style="display: inline;">
+                <button type="submit" class="btn-primary" style="background: linear-gradient(135deg, #00ff88, #00cc66);">
+                    <i class="fas fa-sign-in-alt"></i> Check In
+                </button>
+            </form>
+            {% elif not booking.checked_out_at %}
+            <form method="POST" action="{{ url_for('booking.check_out', booking_id=booking.id) }}" style="display: inline;">
+                <button type="submit" class="btn-primary" style="background: linear-gradient(135deg, #ffaa33, #ff8800);">
+                    <i class="fas fa-sign-out-alt"></i> Check Out
+                </button>
+            </form>
+            {% endif %}
+        {% endif %}
+        
+        <a href="{{ url_for('booking.index') }}" class="btn-secondary">
+            <i class="fas fa-arrow-left"></i>
+            <span>Back to Bookings</span>
+        </a>
+    </div>
+</div>
+
+<!-- Cancel Modal -->
+<div id="cancelModal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-header">
+            <h3 class="modal-title">
+                <i class="fas fa-times-circle" style="color: #ff3366;"></i>
+                <span>Cancel Booking</span>
+            </h3>
+            <button class="modal-close" onclick="closeCancelModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p>Are you sure you want to cancel this booking?</p>
+            <p style="color: #ffaa33; margin-top: 0.5rem;">
+                <strong>{{ booking.title }}</strong><br>
+                {{ booking.start_time.strftime('%B %d, %Y at %I:%M %p') }} - {{ booking.end_time.strftime('%I:%M %p') }}
+            </p>
+            <div class="form-group" style="margin-top: 1rem;">
+                <label>Reason for cancellation (Optional)</label>
+                <textarea id="cancelReason" rows="3" placeholder="Please provide a reason for cancellation..."></textarea>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <form method="POST" action="{{ url_for('booking.cancel', booking_id=booking.id) }}" style="flex: 1;">
+                <input type="hidden" name="reason" id="cancelReasonInput">
+                <button type="submit" class="btn-primary-modal" style="background: rgba(255, 51, 102, 0.8); width: 100%;">
+                    Confirm Cancellation
+                </button>
+            </form>
+            <button class="btn-secondary-modal" onclick="closeCancelModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openCancelModal() {
+        document.getElementById('cancelModal').style.display = 'flex';
+    }
+
+    function closeCancelModal() {
+        document.getElementById('cancelModal').style.display = 'none';
+        document.getElementById('cancelReason').value = '';
+    }
+
+    function confirmCancel() {
+        const reason = document.getElementById('cancelReason').value;
+        document.getElementById('cancelReasonInput').value = reason;
+        document.querySelector('#cancelModal form').submit();
+    }
+
+    // Close modal on ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeCancelModal();
+        }
+    });
+</script>
+
+<style>
+    .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.85);
+        backdrop-filter: blur(15px);
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
+    }
+    .modal[style*="display: flex"] {
+        display: flex !important;
+    }
+    .modal-content {
+        background: rgba(8, 18, 34, 0.95);
+        backdrop-filter: blur(20px);
+        border-radius: 2rem;
+        padding: 2rem;
+        width: 90%;
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        animation: modalSlideIn 0.3s ease;
+    }
+    @keyframes modalSlideIn {
+        from { transform: translateY(-50px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+    .modal-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .modal-close {
+        background: none;
+        border: none;
+        color: #fff;
+        font-size: 1.5rem;
+        cursor: pointer;
+    }
+    .form-group textarea {
+        width: 100%;
+        padding: 0.8rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        border-radius: 12px;
+        color: white;
+        font-family: inherit;
+    }
+    .modal-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+    .btn-primary-modal {
+        padding: 0.8rem;
+        background: linear-gradient(135deg, #2b6eff, #9b4dff);
+        border: none;
+        border-radius: 40px;
+        color: white;
+        cursor: pointer;
+    }
+    .btn-secondary-modal {
+        padding: 0.8rem;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        border-radius: 40px;
+        color: white;
+        cursor: pointer;
+    }
+</style>
+{% endblock %}

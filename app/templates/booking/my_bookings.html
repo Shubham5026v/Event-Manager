@@ -1,0 +1,402 @@
+{% extends "base.html" %}
+
+{% block title %}My Bookings - EventX{% endblock %}
+
+{% block extra_css %}
+<style>
+    .my-bookings-page {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+
+    .page-header h1 {
+        color: #ffffff;
+        margin: 0;
+        font-size: 2rem;
+    }
+
+    .create-booking-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        background: rgba(0, 123, 255, 0.2);
+        border: 1px solid rgba(0, 123, 255, 0.3);
+        border-radius: 0.85rem;
+        color: #ffffff;
+        text-decoration: none;
+        transition: all 0.25s ease;
+    }
+
+    .create-booking-btn:hover {
+        transform: translateY(-1px);
+        background: rgba(0, 123, 255, 0.3);
+        border-color: rgba(0, 123, 255, 0.5);
+    }
+
+    .bookings-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .booking-card {
+        background: rgba(10, 18, 35, 0.75);
+        border: 1px solid rgba(0, 255, 255, 0.15);
+        border-radius: 1.5rem;
+        padding: 1.5rem;
+        transition: all 0.25s ease;
+        cursor: pointer;
+    }
+
+    .booking-card:hover {
+        transform: translateY(-2px);
+        border-color: rgba(0, 255, 255, 0.3);
+        box-shadow: 0 8px 25px rgba(0, 255, 255, 0.1);
+    }
+
+    .booking-title {
+        color: #ffffff;
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .booking-title i {
+        color: #00ffff;
+    }
+
+    .booking-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #a5bbff;
+        font-size: 0.9rem;
+    }
+
+    .meta-item i {
+        color: #00ffff;
+        width: 16px;
+    }
+
+    .booking-status {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 1rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 1rem;
+    }
+
+    .status-pending {
+        background: rgba(255, 193, 7, 0.2);
+        color: #ffc107;
+        border: 1px solid rgba(255, 193, 7, 0.3);
+    }
+
+    .status-approved {
+        background: rgba(40, 167, 69, 0.2);
+        color: #28a745;
+        border: 1px solid rgba(40, 167, 69, 0.3);
+    }
+
+    .status-confirmed {
+        background: rgba(0, 123, 255, 0.2);
+        color: #007bff;
+        border: 1px solid rgba(0, 123, 255, 0.3);
+    }
+
+    .status-completed {
+        background: rgba(23, 162, 184, 0.2);
+        color: #17a2b8;
+        border: 1px solid rgba(23, 162, 184, 0.3);
+    }
+
+    .status-cancelled {
+        background: rgba(220, 53, 69, 0.2);
+        color: #dc3545;
+        border: 1px solid rgba(220, 53, 69, 0.3);
+    }
+
+    .status-rejected {
+        background: rgba(108, 117, 125, 0.2);
+        color: #6c757d;
+        border: 1px solid rgba(108, 117, 125, 0.3);
+    }
+
+    .booking-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    .booking-actions a {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-weight: 500;
+        transition: all 0.25s ease;
+    }
+
+    .btn-view {
+        background: rgba(0, 255, 255, 0.1);
+        color: #00ffff;
+        border: 1px solid rgba(0, 255, 255, 0.2);
+    }
+
+    .btn-view:hover {
+        background: rgba(0, 255, 255, 0.2);
+        border-color: rgba(0, 255, 255, 0.4);
+    }
+
+    .btn-edit {
+        background: rgba(0, 123, 255, 0.1);
+        color: #007bff;
+        border: 1px solid rgba(0, 123, 255, 0.2);
+    }
+
+    .btn-edit:hover {
+        background: rgba(0, 123, 255, 0.2);
+        border-color: rgba(0, 123, 255, 0.4);
+    }
+
+    .btn-cancel {
+        background: rgba(220, 53, 69, 0.1);
+        color: #dc3545;
+        border: 1px solid rgba(220, 53, 69, 0.2);
+    }
+
+    .btn-cancel:hover {
+        background: rgba(220, 53, 69, 0.2);
+        border-color: rgba(220, 53, 69, 0.4);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: #a5bbff;
+    }
+
+    .empty-state h2 {
+        color: #ffffff;
+        margin-bottom: 1rem;
+        font-size: 1.5rem;
+    }
+
+    .empty-state p {
+        margin-bottom: 2rem;
+        font-size: 1.1rem;
+    }
+
+    .empty-state .create-booking-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem 2rem;
+        font-size: 1rem;
+    }
+
+    .filter-section {
+        background: rgba(10, 18, 35, 0.75);
+        border: 1px solid rgba(0, 255, 255, 0.15);
+        border-radius: 1.5rem;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .filter-controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    .filter-controls label {
+        color: #ffffff;
+        font-weight: 500;
+    }
+
+    .filter-controls select {
+        padding: 0.5rem;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 0.5rem;
+        color: #ffffff;
+    }
+
+    .filter-controls select:focus {
+        outline: none;
+        border-color: #00ffff;
+    }
+
+    @media (max-width: 768px) {
+        .my-bookings-page {
+            padding: 1rem;
+        }
+
+        .page-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .bookings-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .booking-actions {
+            flex-direction: column;
+        }
+
+        .booking-actions a {
+            justify-content: center;
+        }
+
+        .filter-controls {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .filter-controls select {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="my-bookings-page">
+    <div class="page-header">
+        <h1><i class="fas fa-calendar-check"></i> My Bookings</h1>
+        <a href="{{ url_for('booking.create') }}" class="create-booking-btn">
+            <i class="fas fa-plus"></i>
+            New Booking
+        </a>
+    </div>
+
+    <!-- Filters -->
+    <div class="filter-section">
+        <form method="GET" class="filter-controls">
+            <label for="status_filter">Filter by Status:</label>
+            <select name="status" id="status_filter" onchange="this.form.submit()">
+                <option value="">All Statuses</option>
+                <option value="draft" {% if request.args.get('status') == 'draft' %}selected{% endif %}>Draft</option>
+                <option value="pending_faculty" {% if request.args.get('status') == 'pending_faculty' %}selected{% endif %}>Pending Faculty</option>
+                <option value="pending_admin" {% if request.args.get('status') == 'pending_admin' %}selected{% endif %}>Pending Admin</option>
+                <option value="pending_security" {% if request.args.get('status') == 'pending_security' %}selected{% endif %}>Pending Security</option>
+                <option value="approved" {% if request.args.get('status') == 'approved' %}selected{% endif %}>Approved</option>
+                <option value="confirmed" {% if request.args.get('status') == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                <option value="completed" {% if request.args.get('status') == 'completed' %}selected{% endif %}>Completed</option>
+                <option value="cancelled" {% if request.args.get('status') == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                <option value="rejected" {% if request.args.get('status') == 'rejected' %}selected{% endif %}>Rejected</option>
+            </select>
+        </form>
+    </div>
+
+    {% if bookings %}
+        <div class="bookings-grid">
+            {% for booking in bookings %}
+                <div class="booking-card" onclick="window.location.href='{{ url_for('booking.view', booking_id=booking.id) }}'">
+                    <div class="booking-title">
+                        <i class="fas fa-calendar-day"></i>
+                        {{ booking.title }}
+                    </div>
+
+                    <div class="booking-meta">
+                        <div class="meta-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            {{ booking.venue.name }}
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-calendar-alt"></i>
+                            {{ booking.start_time.strftime('%Y-%m-%d') }}
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-clock"></i>
+                            {{ booking.start_time.strftime('%H:%M') }} - {{ booking.end_time.strftime('%H:%M') }}
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-users"></i>
+                            {{ booking.expected_attendees }} attendees
+                        </div>
+                    </div>
+
+                    <div class="booking-status status-{{ booking.status.value.lower() }}">
+                        {{ booking.status.value|title }}
+                    </div>
+
+                    <div class="booking-actions">
+                        <a href="{{ url_for('booking.view', booking_id=booking.id) }}" class="btn-view" onclick="event.stopPropagation()">
+                            <i class="fas fa-eye"></i>
+                            View
+                        </a>
+                        {% if booking.status.value in ['draft', 'pending_faculty'] %}
+                            <a href="{{ url_for('booking.edit', booking_id=booking.id) }}" class="btn-edit" onclick="event.stopPropagation()">
+                                <i class="fas fa-edit"></i>
+                                Edit
+                            </a>
+                            <a href="#" class="btn-cancel" onclick="event.stopPropagation(); cancelBooking({{ booking.id }})">
+                                <i class="fas fa-times"></i>
+                                Cancel
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <h2>No Bookings Found</h2>
+            <p>You haven't created any venue bookings yet. Start by creating your first booking!</p>
+            <a href="{{ url_for('booking.create') }}" class="create-booking-btn">
+                <i class="fas fa-plus"></i>
+                Create Your First Booking
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+function cancelBooking(bookingId) {
+    if (confirm('Are you sure you want to cancel this booking?')) {
+        // Create a form and submit it
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/booking/${bookingId}/cancel`;
+
+        const reasonInput = document.createElement('input');
+        reasonInput.type = 'hidden';
+        reasonInput.name = 'reason';
+        reasonInput.value = 'Cancelled by user';
+
+        form.appendChild(reasonInput);
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+</script>
+{% endblock %}

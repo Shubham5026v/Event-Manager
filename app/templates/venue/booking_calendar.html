@@ -1,0 +1,528 @@
+{% extends "base.html" %}
+
+{% block title %}Booking Calendar - EventX Venue Booking{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
+<style>
+    .calendar-container {
+        padding: 2rem;
+        max-width: 1600px;
+        margin: 0 auto;
+    }
+
+    /* Page Header */
+    .page-header {
+        margin-bottom: 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .page-title {
+        font-size: 2rem;
+        font-weight: 800;
+        font-family: 'Orbitron', monospace;
+        background: linear-gradient(135deg, #fff, #00ffff);
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+    }
+
+    /* Filter Bar */
+    .filter-bar {
+        background: rgba(8, 18, 34, 0.6);
+        backdrop-filter: blur(12px);
+        border-radius: 1rem;
+        padding: 1rem;
+        margin-bottom: 2rem;
+        border: 1px solid rgba(0, 255, 255, 0.2);
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        align-items: flex-end;
+    }
+
+    .filter-group {
+        flex: 1;
+        min-width: 150px;
+    }
+
+    .filter-group label {
+        display: block;
+        font-size: 0.75rem;
+        color: #00ffff;
+        margin-bottom: 0.3rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .filter-group select {
+        width: 100%;
+        padding: 0.6rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        border-radius: 8px;
+        color: white;
+        font-family: inherit;
+        cursor: pointer;
+    }
+
+    /* Calendar Wrapper */
+    .calendar-wrapper {
+        background: rgba(8, 18, 34, 0.6);
+        backdrop-filter: blur(12px);
+        border-radius: 1.5rem;
+        border: 1px solid rgba(0, 255, 255, 0.2);
+        padding: 1rem;
+        overflow: hidden;
+    }
+
+    /* FullCalendar Customization */
+    .fc {
+        color: #e0e8ff;
+    }
+
+    .fc .fc-toolbar-title {
+        font-family: 'Orbitron', monospace;
+        font-size: 1.3rem;
+        color: #00ffff;
+    }
+
+    .fc .fc-button-primary {
+        background: rgba(0, 255, 255, 0.1);
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        color: #00ffff;
+    }
+
+    .fc .fc-button-primary:hover {
+        background: rgba(0, 255, 255, 0.2);
+        border-color: #00ffff;
+    }
+
+    .fc .fc-button-primary:not(:disabled).fc-button-active,
+    .fc .fc-button-primary:not(:disabled):active {
+        background: linear-gradient(135deg, #2b6eff, #9b4dff);
+        border-color: #00ffff;
+    }
+
+    .fc .fc-daygrid-day {
+        background: rgba(255, 255, 255, 0.02);
+        border-color: rgba(0, 255, 255, 0.1);
+    }
+
+    .fc .fc-daygrid-day-number {
+        color: #e0e8ff;
+    }
+
+    .fc .fc-day-today {
+        background: rgba(0, 255, 255, 0.1);
+    }
+
+    .fc .fc-day-today .fc-daygrid-day-number {
+        color: #00ffff;
+        font-weight: bold;
+    }
+
+    .fc .fc-event {
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+
+    .fc .fc-event:hover {
+        transform: scale(1.02);
+    }
+
+    .fc-event-academic {
+        background-color: #2b6eff;
+        border-left: 4px solid #00ffff;
+    }
+
+    .fc-event-cultural {
+        background-color: #9b4dff;
+        border-left: 4px solid #00ffff;
+    }
+
+    .fc-event-practice {
+        background-color: #00ff88;
+        border-left: 4px solid #00ffff;
+        color: #000;
+    }
+
+    /* Legend */
+    .calendar-legend {
+        display: flex;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid rgba(0, 255, 255, 0.2);
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.8rem;
+    }
+
+    .legend-color {
+        width: 20px;
+        height: 20px;
+        border-radius: 4px;
+    }
+
+    .legend-color.academic { background-color: #2b6eff; }
+    .legend-color.cultural { background-color: #9b4dff; }
+    .legend-color.practice { background-color: #00ff88; }
+
+    /* Event Details Modal */
+    .event-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.85);
+        backdrop-filter: blur(15px);
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .event-modal.active {
+        display: flex;
+    }
+
+    .event-modal-content {
+        background: rgba(8, 18, 34, 0.95);
+        backdrop-filter: blur(20px);
+        border-radius: 2rem;
+        padding: 2rem;
+        max-width: 500px;
+        width: 90%;
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        animation: modalSlideIn 0.3s ease;
+    }
+
+    @keyframes modalSlideIn {
+        from {
+            transform: translateY(-50px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    .event-modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+    }
+
+    .event-modal-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .event-modal-close {
+        background: none;
+        border: none;
+        color: #fff;
+        font-size: 1.5rem;
+        cursor: pointer;
+    }
+
+    .event-detail-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid rgba(0, 255, 255, 0.1);
+    }
+
+    .event-detail-label {
+        color: #99aaff;
+    }
+
+    .event-detail-value {
+        font-weight: 600;
+    }
+
+    .event-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+
+    @media (max-width: 768px) {
+        .calendar-container {
+            padding: 1rem;
+        }
+        
+        .filter-bar {
+            flex-direction: column;
+        }
+        
+        .filter-group {
+            width: 100%;
+        }
+        
+        .fc .fc-toolbar {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="calendar-container">
+    <!-- Page Header -->
+    <div class="page-header" data-aos="fade-up">
+        <div class="page-title">
+            <i class="fas fa-calendar-alt"></i>
+            <span>Venue Booking Calendar</span>
+        </div>
+        <a href="{{ url_for('booking.create') }}" class="btn-glass">
+            <i class="fas fa-plus-circle"></i>
+            <span>New Booking</span>
+        </a>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar" data-aos="fade-up" data-aos-delay="50">
+        <div class="filter-group">
+            <label>Filter by Venue</label>
+            <select id="venueFilter">
+                <option value="all">All Venues</option>
+                {% for venue in venues %}
+                <option value="{{ venue.id }}">{{ venue.name }} ({{ venue.type.value|replace('_', ' ')|title }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>Event Type</label>
+            <select id="eventTypeFilter">
+                <option value="all">All Types</option>
+                <option value="academic">Academic</option>
+                <option value="cultural">Cultural</option>
+                <option value="practice">Practice</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Calendar -->
+    <div class="calendar-wrapper" data-aos="fade-up" data-aos-delay="100">
+        <div id="calendar"></div>
+        <div class="calendar-legend">
+            <div class="legend-item">
+                <div class="legend-color academic"></div>
+                <span>Academic Events</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color cultural"></div>
+                <span>Cultural Events</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color practice"></div>
+                <span>Practice Sessions</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Event Details Modal -->
+<div id="eventModal" class="event-modal">
+    <div class="event-modal-content">
+        <div class="event-modal-header">
+            <h3 class="event-modal-title">
+                <i class="fas fa-info-circle"></i>
+                <span>Event Details</span>
+            </h3>
+            <button class="event-modal-close" onclick="closeEventModal()">&times;</button>
+        </div>
+        <div id="eventDetails"></div>
+        <div class="event-actions">
+            <a href="#" id="viewBookingLink" class="btn-glass" style="flex: 1; text-align: center;">
+                <i class="fas fa-eye"></i> View Details
+            </a>
+            <button class="btn-glass" onclick="closeEventModal()" style="flex: 1;">Close</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+<script>
+    let calendar = null;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeCalendar();
+        
+        // Filter listeners
+        document.getElementById('venueFilter').addEventListener('change', () => {
+            if (calendar) {
+                calendar.refetchEvents();
+            }
+        });
+        
+        document.getElementById('eventTypeFilter').addEventListener('change', () => {
+            if (calendar) {
+                calendar.refetchEvents();
+            }
+        });
+    });
+
+    function initializeCalendar() {
+        const calendarEl = document.getElementById('calendar');
+        
+        calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            locale: 'en',
+            timeZone: 'UTC',
+            events: function(fetchInfo, successCallback, failureCallback) {
+                const venueId = document.getElementById('venueFilter').value;
+                const eventType = document.getElementById('eventTypeFilter').value;
+                
+                let url = `/calendar/api/events?start=${fetchInfo.startStr}&end=${fetchInfo.endStr}`;
+                if (venueId !== 'all') {
+                    url += `&venue_id=${venueId}`;
+                }
+                if (eventType !== 'all') {
+                    url += `&event_type=${eventType}`;
+                }
+                
+                fetch(url)
+                    .then(response => response.json())
+                    .then(data => {
+                        successCallback(data);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching events:', error);
+                        failureCallback(error);
+                    });
+            },
+            eventClick: function(info) {
+                showEventDetails(info.event);
+            },
+            dateClick: function(info) {
+                // Redirect to create booking page with pre-filled date
+                const date = new Date(info.dateStr);
+                const formattedDate = date.toISOString().split('T')[0];
+                window.location.href = `/bookings/create?date=${formattedDate}`;
+            },
+            eventDidMount: function(info) {
+                // Add event type class for styling
+                const eventType = info.event.extendedProps.event_type;
+                if (eventType === 'academic') {
+                    info.el.classList.add('fc-event-academic');
+                } else if (eventType === 'cultural') {
+                    info.el.classList.add('fc-event-cultural');
+                } else {
+                    info.el.classList.add('fc-event-practice');
+                }
+            },
+            loading: function(isLoading) {
+                if (isLoading) {
+                    // Show loading indicator
+                    document.querySelector('.fc-toolbar').style.opacity = '0.5';
+                } else {
+                    document.querySelector('.fc-toolbar').style.opacity = '1';
+                }
+            }
+        });
+        
+        calendar.render();
+    }
+
+    function showEventDetails(event) {
+        const modal = document.getElementById('eventModal');
+        const detailsContainer = document.getElementById('eventDetails');
+        const viewLink = document.getElementById('viewBookingLink');
+        
+        const startTime = event.start ? new Date(event.start).toLocaleString() : 'N/A';
+        const endTime = event.end ? new Date(event.end).toLocaleString() : 'N/A';
+        const venueName = event.extendedProps.venue_name || 'N/A';
+        const eventType = event.extendedProps.event_type || 'N/A';
+        const description = event.extendedProps.description || 'No description provided';
+        const attendees = event.extendedProps.expected_attendees || 'Not specified';
+        const priority = event.extendedProps.priority_name || 'Standard';
+        
+        detailsContainer.innerHTML = `
+            <div class="event-detail-row">
+                <span class="event-detail-label">Event Title:</span>
+                <span class="event-detail-value">${escapeHtml(event.title)}</span>
+            </div>
+            <div class="event-detail-row">
+                <span class="event-detail-label">Venue:</span>
+                <span class="event-detail-value">${escapeHtml(venueName)}</span>
+            </div>
+            <div class="event-detail-row">
+                <span class="event-detail-label">Date & Time:</span>
+                <span class="event-detail-value">${startTime} - ${endTime}</span>
+            </div>
+            <div class="event-detail-row">
+                <span class="event-detail-label">Event Type:</span>
+                <span class="event-detail-value">${eventType.charAt(0).toUpperCase() + eventType.slice(1)}</span>
+            </div>
+            <div class="event-detail-row">
+                <span class="event-detail-label">Priority:</span>
+                <span class="event-detail-value">${escapeHtml(priority)}</span>
+            </div>
+            <div class="event-detail-row">
+                <span class="event-detail-label">Expected Attendees:</span>
+                <span class="event-detail-value">${attendees}</span>
+            </div>
+            <div class="event-detail-row">
+                <span class="event-detail-label">Description:</span>
+                <span class="event-detail-value">${escapeHtml(description)}</span>
+            </div>
+        `;
+        
+        // Set view link
+        viewLink.href = `/bookings/${event.id}`;
+        
+        modal.classList.add('active');
+    }
+
+    function closeEventModal() {
+        const modal = document.getElementById('eventModal');
+        modal.classList.remove('active');
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    // Close modal on ESC key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeEventModal();
+        }
+    });
+</script>
+{% endblock %}

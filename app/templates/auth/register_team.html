@@ -1,0 +1,323 @@
+{% extends "base.html" %}
+
+{% block title %}Team Registration - EventX{% endblock %}
+
+{% block extra_css %}
+<style>
+    .auth-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+    }
+
+    .auth-card {
+        max-width: 500px;
+        width: 100%;
+        background: rgba(10, 20, 35, 0.8);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        border-radius: 2rem;
+        padding: 3rem 2rem;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .auth-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .auth-header h1 {
+        font-size: 1.8rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #00ffff, #6b2eff);
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+        margin-bottom: 0.5rem;
+    }
+
+    .auth-header p {
+        color: #a5bbff;
+        font-size: 0.9rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: #e0e8ff;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .form-group input,
+    .form-group select {
+        width: 100%;
+        padding: 0.8rem 1.2rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(0, 255, 255, 0.2);
+        border-radius: 0.8rem;
+        color: white;
+        font-size: 1rem;
+        transition: all 0.3s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(0, 255, 255, 0.6);
+        box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
+        outline: none;
+    }
+
+    .form-group input::placeholder {
+        color: rgba(255, 255, 255, 0.4);
+    }
+
+    .form-group.error input {
+        border-color: #ff3366;
+    }
+
+    .error-message {
+        color: #ff3366;
+        font-size: 0.8rem;
+        margin-top: 0.3rem;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    .btn-register {
+        width: 100%;
+        padding: 1rem;
+        background: linear-gradient(135deg, #2b6eff, #9b4dff);
+        border: none;
+        border-radius: 0.8rem;
+        color: white;
+        font-weight: 700;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s;
+        margin-top: 1rem;
+    }
+
+    .btn-register:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(43, 110, 255, 0.3);
+    }
+
+    .auth-footer {
+        text-align: center;
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid rgba(0, 255, 255, 0.1);
+    }
+
+    .auth-footer p {
+        color: #a5bbff;
+        font-size: 0.9rem;
+    }
+
+    .auth-footer a {
+        color: #00ffff;
+        text-decoration: none;
+        font-weight: 600;
+        transition: color 0.2s;
+    }
+
+    .auth-footer a:hover {
+        color: white;
+    }
+
+    .alert {
+        padding: 1rem;
+        border-radius: 0.8rem;
+        margin-bottom: 1.5rem;
+        font-size: 0.9rem;
+    }
+
+    .alert-danger {
+        background: rgba(255, 51, 102, 0.1);
+        border: 1px solid rgba(255, 51, 102, 0.3);
+        color: #ff6b99;
+    }
+
+    .alert-success {
+        background: rgba(0, 255, 136, 0.1);
+        border: 1px solid rgba(0, 255, 136, 0.3);
+        color: #00ff88;
+    }
+
+    .section-title {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #00ffff;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin: 1.5rem 0 1rem 0;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+    }
+
+    @media (max-width: 600px) {
+        .auth-card {
+            padding: 2rem 1.5rem;
+        }
+
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+
+        .auth-header h1 {
+            font-size: 1.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <h1>
+                <i class="fas fa-users"></i>
+                Team Registration
+            </h1>
+            <p>Join an event and showcase your talent</p>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" novalidate>
+            {{ form.hidden_tag() }}
+
+            <div class="section-title">Account Credentials</div>
+
+            <div class="form-group">
+                {{ form.username.label }}
+                {{ form.username(class="form-control", placeholder="Choose a username") }}
+                {% if form.username.errors %}
+                    {% for error in form.username.errors %}
+                        <span class="error-message">{{ error }}</span>
+                    {% endfor %}
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                {{ form.email.label }}
+                {{ form.email(class="form-control", type="email", placeholder="your.email@example.com") }}
+                {% if form.email.errors %}
+                    {% for error in form.email.errors %}
+                        <span class="error-message">{{ error }}</span>
+                    {% endfor %}
+                {% endif %}
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    {{ form.password.label }}
+                    {{ form.password(class="form-control", placeholder="Password") }}
+                    {% if form.password.errors %}
+                        {% for error in form.password.errors %}
+                            <span class="error-message">{{ error }}</span>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    {{ form.confirm_password.label }}
+                    {{ form.confirm_password(class="form-control", placeholder="Confirm Password") }}
+                    {% if form.confirm_password.errors %}
+                        {% for error in form.confirm_password.errors %}
+                            <span class="error-message">{{ error }}</span>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="section-title">Team Information</div>
+
+            <div class="form-group">
+                {{ form.team_name.label }}
+                {{ form.team_name(class="form-control", placeholder="Your Team Name") }}
+                {% if form.team_name.errors %}
+                    {% for error in form.team_name.errors %}
+                        <span class="error-message">{{ error }}</span>
+                    {% endfor %}
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                {{ form.institution.label }}
+                {{ form.institution(class="form-control", placeholder="Institution/Organization") }}
+                {% if form.institution.errors %}
+                    {% for error in form.institution.errors %}
+                        <span class="error-message">{{ error }}</span>
+                    {% endfor %}
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                {{ form.leader_name.label }}
+                {{ form.leader_name(class="form-control", placeholder="Team Leader Full Name") }}
+                {% if form.leader_name.errors %}
+                    {% for error in form.leader_name.errors %}
+                        <span class="error-message">{{ error }}</span>
+                    {% endfor %}
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                {{ form.leader_phone.label }}
+                {{ form.leader_phone(class="form-control", placeholder="+1 (234) 567-8900") }}
+                {% if form.leader_phone.errors %}
+                    {% for error in form.leader_phone.errors %}
+                        <span class="error-message">{{ error }}</span>
+                    {% endfor %}
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                {{ form.event_id.label }}
+                {{ form.event_id(class="form-control") }}
+                {% if form.event_id.errors %}
+                    {% for error in form.event_id.errors %}
+                        <span class="error-message">{{ error }}</span>
+                    {% endfor %}
+                {% endif %}
+            </div>
+
+            <button type="submit" class="btn-register">
+                <i class="fas fa-rocket"></i>
+                Register Team
+            </button>
+        </form>
+
+        <div class="auth-footer">
+            <p>
+                Already have an account?
+                <a href="{{ url_for('auth.login') }}">
+                    <i class="fas fa-arrow-right"></i>
+                    Login here
+                </a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
